@@ -14,7 +14,8 @@
     "init": "node ./util/init-bundles.js",
     "update-bundle-remote": "node ./util/update-bundle-url.js",
     "remove-bundle": "node ./util/remove-bundle.js",
-    "install-bundle": "node ./util/install-bundle.js"
+    "install-bundle": "node ./util/install-bundle.js",
+    "test": "mocha"
   },
   "dependencies": {
     "commander": "^2.19.0",
@@ -28,6 +29,7 @@
     "winston": "^2.4.4"
   },
   "devDependencies": {
-    "git-url-parse": "^11.1.2"
+    "git-url-parse": "^11.1.2",
+    "mocha": "^10.8.2"
   }
 }
