@@ -121,6 +121,7 @@ async function main() {
 
   let ready = false;
   const outputChunks = [];
+  let readyTimeoutId;
 
   function handleOutput(chunk) {
     const text = chunk.toString('utf8');
@@ -130,6 +131,9 @@ async function main() {
         const match = text.match(regex);
         if (match) {
           ready = true;
+          if (readyTimeoutId) {
+            clearTimeout(readyTimeoutId);
+          }
           console.log(`Detected telnet readiness: "${match[0]}"`);
           break;
         }
@@ -142,16 +146,26 @@ async function main() {
   child.stderr.on('data', handleOutput);
 
   const readyTimeout = new Promise((_, reject) => {
-    setTimeout(() => {
+    readyTimeoutId = setTimeout(() => {
       if (!ready) {
         reject(new Error('Timed out waiting for telnet readiness output'));
       }
     }, 30000);
   });
 
+  const earlyExit = new Promise((_, reject) => {
+    child.once('exit', (code, signal) => {
+      if (!ready) {
+        reject(new Error(`Server exited before telnet readiness (code ${code}, signal ${signal})`));
+      }
+    });
+  });
+
+  let socket;
   try {
     await Promise.race([
       readyTimeout,
+      earlyExit,
       new Promise((resolve, reject) => {
         child.on('error', reject);
         const check = setInterval(() => {
@@ -164,7 +178,7 @@ async function main() {
     ]);
 
     console.log('Connecting to telnet...');
-    const socket = net.createConnection({ port, host: '127.0.0.1' });
+    socket = net.createConnection({ port, host: '127.0.0.1' });
 
     await new Promise((resolve, reject) => {
       socket.once('connect', resolve);
@@ -185,6 +199,9 @@ async function main() {
     console.error(err.message);
     throw err;
   } finally {
+    if (socket && !socket.destroyed) {
+      socket.destroy();
+    }
     console.log('Shutting down server...');
     child.kill('SIGINT');
     const exitCode = await new Promise((resolve) => {
