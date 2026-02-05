@@ -20,3 +20,9 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Run init-bundles
+        run: printf 'y\n' | npm run init
+      - name: Verify bundles
+        run: |
+          test -d bundles/bundle-example-areas
+          node -e "const cfg=require('./ranvier.json'); if (!cfg.bundles.includes('bundle-example-areas')) { process.exit(1); }"

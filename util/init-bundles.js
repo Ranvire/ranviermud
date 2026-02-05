@@ -33,26 +33,25 @@ async function main() {
     process.exit(0);
   }
 
-  const githubPath = 'https://github.com/ranviermud/';
   const defaultBundles = [
-    'https://github.com/RanvierMUD/bundle-example-areas',
-    'https://github.com/RanvierMUD/bundle-example-channels',
-    'https://github.com/RanvierMUD/bundle-example-classes',
-    'https://github.com/RanvierMUD/bundle-example-combat',
-    'https://github.com/RanvierMUD/bundle-example-commands',
-    'https://github.com/RanvierMUD/bundle-example-debug',
-    'https://github.com/RanvierMUD/bundle-example-effects',
-    'https://github.com/RanvierMUD/bundle-example-input-events',
-    'https://github.com/RanvierMUD/bundle-example-lib',
-    'https://github.com/RanvierMUD/bundle-example-npc-behaviors',
-    'https://github.com/RanvierMUD/bundle-example-player-events',
-    'https://github.com/RanvierMUD/bundle-example-quests',
-    'https://github.com/RanvierMUD/simple-crafting',
-    'https://github.com/RanvierMUD/vendor-npcs',
-    'https://github.com/RanvierMUD/player-groups',
-    'https://github.com/RanvierMUD/progressive-respawn',
-    'https://github.com/RanvierMUD/telnet-networking',
-    'https://github.com/RanvierMUD/websocket-networking',
+    'https://github.com/Ranvire/bundle-example-areas',
+    'https://github.com/Ranvire/bundle-example-channels',
+    'https://github.com/Ranvire/bundle-example-classes',
+    'https://github.com/Ranvire/bundle-example-combat',
+    'https://github.com/Ranvire/bundle-example-commands',
+    'https://github.com/Ranvire/bundle-example-debug',
+    'https://github.com/Ranvire/bundle-example-effects',
+    'https://github.com/Ranvire/bundle-example-input-events',
+    'https://github.com/Ranvire/bundle-example-lib',
+    'https://github.com/Ranvire/bundle-example-npc-behaviors',
+    'https://github.com/Ranvire/bundle-example-player-events',
+    'https://github.com/Ranvire/bundle-example-quests',
+    'https://github.com/Ranvire/simple-crafting',
+    'https://github.com/Ranvire/vendor-npcs',
+    'https://github.com/Ranvire/player-groups',
+    'https://github.com/Ranvire/progressive-respawn',
+    'https://github.com/Ranvire/telnet-networking',
+    'https://github.com/Ranvire/websocket-networking',
   ];
   const enabledBundles = [];
 
