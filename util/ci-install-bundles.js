@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+// CI-focused bundle installer: non-interactive and does not modify configuration.
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
