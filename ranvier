@@ -22,6 +22,13 @@ const fs = require('fs');
 // back to the ranviermud repo and run npm link ranvier
 const Ranvier = require('ranvier');
 const Config = Ranvier.Config;
+const testMode = process.env.RANVIER_WRAPPER_TEST === '1';
+const testOutputPath = process.env.RANVIER_WRAPPER_TEST_OUTPUT;
+const testPayload = {
+  configSource: null,
+  dataPath: `${__dirname}/data/`,
+  bundlesPath: `${__dirname}/bundles/`,
+};
 
 // Package.json for versioning
 const pkg = require('./package.json');
@@ -37,8 +44,10 @@ if (!semver.satisfies(process.version, pkg.engines.node)) {
 Ranvier.Data.setDataPath(__dirname + '/data/');
 if (fs.existsSync('./ranvier.conf.js')) {
   Config.load(require('./ranvier.conf.js'));
+  testPayload.configSource = 'ranvier.conf.js';
 } else if (fs.existsSync('./ranvier.json')) {
   Config.load(require('./ranvier.json'));
+  testPayload.configSource = 'ranvier.json';
 } else {
   console.error('ERROR: No ranvier.json or ranvier.conf.js found');
   process.exit(1);
@@ -134,7 +143,7 @@ async function init(restartServer) {
   await BundleManager.loadBundles();
   GameState.ServerEventManager.attach(GameState.GameServer);
 
-  if (restartServer) {
+  if (restartServer && !testMode) {
     Logger.log("START - Starting server");
     GameState.GameServer.startup(commander);
 
@@ -153,5 +162,17 @@ async function init(restartServer) {
 }
 
 // START IT UP!
-init();
+const initPromise = init(!testMode);
+if (testMode && testOutputPath) {
+  initPromise.then(() => {
+    testPayload.booted = true;
+    testPayload.configPort = Config.get('port');
+    fs.writeFileSync(testOutputPath, JSON.stringify(testPayload, null, 2));
+  }).catch((error) => {
+    testPayload.booted = false;
+    testPayload.error = error.message;
+    fs.writeFileSync(testOutputPath, JSON.stringify(testPayload, null, 2));
+    process.exitCode = 1;
+  });
+}
 // vim: set syn=javascript :
