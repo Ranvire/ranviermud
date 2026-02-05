@@ -33,7 +33,6 @@ async function main() {
     process.exit(0);
   }
 
-  const githubPath = 'https://github.com/ranviermud/';
   const defaultBundles = [
     'https://github.com/Ranvire/bundle-example-areas',
     'https://github.com/Ranvire/bundle-example-channels',
