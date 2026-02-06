@@ -1,4 +1,5 @@
 ![Ranvire Sand Castle](https://avatars.githubusercontent.com/u/259600333?s=200&v=4)
+
 # Ranvire Mud engine
 
 **Ranvire** is a modern upgrade of the [**RanvierMUD**](https://github.com/RanvierMUD/ranviermud) engine.
@@ -35,9 +36,11 @@ This is a checklist outlining the scope of this work and the current status.
 * [ ] Downgrade expected first-run conditions (e.g. missing account files) from hard errors to non-fatal states
 * [ ] Prevent missing optional content (effects, behaviors, help entries) from crashing the server
 * [ ] Add smoke tests that catch regressions in boot/login/play flow
+* [ ] [Add scenario tests for crafting, NPC dialog, and quest completion (npm test)](https://github.com/Ranvire/ranviermud/issues/5)
 
 ### Dependencies
 
+* [ ] Establish a clean install baseline (no deprecation warnings on `npm install`)
 * [ ] Audit and modernize dependencies incrementally
 * [ ] Remove deprecated packages where feasible
 * [ ] Resolve critical security advisories without breaking behavior
