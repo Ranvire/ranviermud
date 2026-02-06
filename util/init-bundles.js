@@ -23,7 +23,9 @@ async function prompt() {
 async function main() {
 
   try {
-    let answer = await prompt();
+    const argv = process.argv.slice(2);
+    const shouldPrompt = !argv.includes('--yes') && !argv.includes('-y');
+    const answer = shouldPrompt ? await prompt() : 'y';
 
     if (answer === 'n') {
       throw 'foo';
