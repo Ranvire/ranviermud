@@ -67,6 +67,7 @@ process.env.NODE_DEBUG = 'net';
 process.stdin.setEncoding('utf8');
 
 const Logger = Ranvier.Logger;
+const Broadcast = Ranvier.Broadcast;
 const logfile = Ranvier.Config.get('logfile');
 if (logfile) {
   Logger.setFileLogging(`${__dirname}/log/${logfile}`);
@@ -81,6 +82,15 @@ const logLevel = commander.verbose ?
   'verbose' :
   process.env.LOG_LEVEL || Config.get('logLevel') || 'debug';
 Logger.setLevel(logLevel);
+
+const originalPrompt = Broadcast.prompt;
+Broadcast.prompt = (player, extra, wrapWidth, useColor) => {
+  if (player && typeof player.prompt === 'string' && !player.prompt.trim().endsWith('>')) {
+    player.prompt = `${player.prompt} >`;
+  }
+
+  return originalPrompt(player, extra, wrapWidth, useColor);
+};
 
 
 // Global state object, server instance and configurable intervals.
