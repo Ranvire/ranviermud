@@ -41,9 +41,11 @@ This is a checklist outlining the scope of this work and the current status.
 ### Dependencies
 
 * [ ] Establish a clean install baseline (no deprecation warnings on `npm install`)
+* [x] Fix manifest version placeholders (e.g., `optimist`, `sty`)
 * [ ] Audit and modernize dependencies incrementally
 * [ ] Remove deprecated packages where feasible
 * [ ] Resolve critical security advisories without breaking behavior
+* [x] Capture `npm audit` advisory data in CI (artifact only)
 
 ### Documentation
 

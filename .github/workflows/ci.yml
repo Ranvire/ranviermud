@@ -19,6 +19,14 @@ jobs:
           npm -v
       - name: Install dependencies
         run: npm ci
+      - name: Capture npm audit report (JSON)
+        run: npm audit --json > audit.json || true
+      - name: Upload npm audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit.json
       - name: Install bundles (CI)
         run: npm run ci:init
       - name: Smoke test login
