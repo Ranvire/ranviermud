@@ -21,14 +21,14 @@
   },
   "dependencies": {
     "commander": "^2.19.0",
-    "optimist": "",
+    "optimist": "0.6.1",
     "rando-js": "^0.2.0",
     "ranvier": "github:Ranvire/core",
     "ranvier-datasource-file": "^1.0.3",
     "ranvier-telnet": "github:Ranvire/ranvier-telnet",
     "semver": "^5.6.0",
     "sprintf-js": "^1.0.3",
-    "sty": "",
+    "sty": "0.6.1",
     "uuid": "^3.3.2",
     "winston": "^2.4.4"
   },
