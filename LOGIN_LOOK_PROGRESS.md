@@ -21,6 +21,10 @@
 - **Fix**: Wrapped `Broadcast.prompt` in `ranvier` to append `> ` when the prompt string does not already end with `>`.
 - **Validation command(s)**: `node ./ranvier`, `telnet localhost 4000`.
 
+### Update: Prompt requirement removed
+- **Change**: The acceptance criteria no longer require a literal `> ` prompt marker; the goal is a stable command-ready state followed by `look` output with the session staying open.
+- **Action**: Reverted the `Broadcast.prompt` wrapper in `ranvier` to avoid altering global prompt behavior.
+
 ## Success Evidence
 
 ### Server start command
