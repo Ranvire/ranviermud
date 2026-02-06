@@ -1,6 +1,7 @@
+![Ranvire Sand Castle](https://avatars.githubusercontent.com/u/259600333?s=200&v=4)
 # Ranvire Mud engine
 
-**Ranvire** is a modern upgrade of the [**RanvierMUD**](https://github.com/orgs/RanvierMUD/ranviermud) engine.
+**Ranvire** is a modern upgrade of the [**RanvierMUD**](https://github.com/RanvierMUD/ranviermud) engine.
 
 At this point, one should be able to clone this repository, run `npm install`, `npm run init`, followed by `npm start`, and have a working MUD. You can log in using a telnet client with `telnet 127.0.0.1 4000`. This assumes Node.js 22+ is installed.
 
