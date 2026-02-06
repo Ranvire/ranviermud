@@ -11,7 +11,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./ranvier -v",
-    "install": "node ./util/ci-install-bundles.js",
+    "ci:init": "node ./util/ci-install-bundles.js",
     "init": "node ./util/init-bundles.js",
     "update-bundle-remote": "node ./util/update-bundle-url.js",
     "remove-bundle": "node ./util/remove-bundle.js",
