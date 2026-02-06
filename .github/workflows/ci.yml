@@ -7,22 +7,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22]
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
+      - name: Report Node.js and npm versions
+        run: |
+          node -v
+          npm -v
       - name: Install dependencies
         run: npm ci
+      - name: Install bundles (CI)
+        run: node ./util/ci-install-bundles.js
+      - name: Smoke test login
+        run: npm run smoke:login
       - name: Run tests
         run: npm test
-      - name: Run init-bundles
-        run: printf 'y\n' | npm run init
-      - name: Verify bundles
-        run: |
-          test -d bundles/bundle-example-areas
-          node -e "const cfg=require('./ranvier.json'); if (!cfg.bundles.includes('bundle-example-areas')) { process.exit(1); }"
