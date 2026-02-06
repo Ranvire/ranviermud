@@ -1,6 +1,53 @@
-<p align="center"><img class="readme-logo" src="https://raw.githubusercontent.com/RanvierMUD/docs/master/resources/logo.png"></p>
+# Ranvire Mud engine
 
-# ranvier
+**Ranvire** is a modern upgrade of the [**RanvierMUD**](https://github.com/orgs/RanvierMUD/ranviermud) engine.
+
+At this point, one should be able to clone this repository, run `npm install`, `npm run init`, followed by `npm start`, and have a working MUD. You can log in using a telnet client with `telnet 127.0.0.1 4000`. This assumes Node.js 22+ is installed.
+
+The 1.0 release is intended to be a **pure maintenance upgrade**: updating the runtime to modern Node.js, adding CI via GitHub Actions, fixing long-standing crashes and sharp edges, and restoring a reliable out-of-the-box experience. There is no engine redesign and no intentional change to the core architecture.
+
+If any of the original contributors would like this work merged upstream, please do reach out. I'm happy to help.
+
+## 1.0 Maintenance Checklist
+
+This is a checklist outlining the scope of this work and the current status.
+
+### Runtime & Tooling
+
+* [x] Upgrade runtime target to Node.js 22+
+* [x] Remove legacy Node version constraints
+* [x] Establish deterministic installs (`npm ci`, modern lockfile)
+* [x] Add GitHub Actions CI
+
+### Boot & Playability
+
+* [x] Server boots successfully on a clean clone
+* [x] Telnet networking works out of the box
+* [x] User can log in and create an account
+* [x] User can create/select a character
+* [x] User can reach the game world and execute basic commands (`look`)
+* [ ] Eliminate remaining crash paths in example content
+* [ ] Ensure baseline bundle set is closed under dependencies
+
+### Stability & Error Handling
+
+* [ ] Downgrade expected first-run conditions (e.g. missing account files) from hard errors to non-fatal states
+* [ ] Prevent missing optional content (effects, behaviors, help entries) from crashing the server
+* [ ] Add smoke tests that catch regressions in boot/login/play flow
+
+### Dependencies
+
+* [ ] Audit and modernize dependencies incrementally
+* [ ] Remove deprecated packages where feasible
+* [ ] Resolve critical security advisories without breaking behavior
+
+### Documentation
+
+* [x] Clarify project scope and intent (this README)
+* [ ] Document baseline bundle set and expected layout
+* [ ] Document CI and smoke test expectations
+
+---
 
 ## Node.js-based MUD engine
 
