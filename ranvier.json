@@ -1,15 +1,6 @@
 {
   "port": 4000,
   "bundles": [
-    "bundle-example-lib",
-    "bundle-example-areas",
-    "bundle-example-commands",
-    "bundle-example-input-events",
-    "bundle-example-player-events",
-    "bundle-example-classes",
-    "bundle-example-quests",
-    "simple-crafting",
-    "telnet-networking"
   ],
   "dataSources": {
     "YamlArea": {
