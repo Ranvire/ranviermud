@@ -6,6 +6,10 @@ const fs = require('fs');
 const os = require('os');
 const readline = require('readline');
 
+const argv = process.argv.slice(2);
+const assumeYes = argv.includes('--yes') || argv.includes('-y');
+const force = assumeYes || argv.includes('--force');
+
 const gitRoot = cp.execSync('git rev-parse --show-toplevel').toString('utf8').trim();
 process.chdir(gitRoot);
 
@@ -22,15 +26,17 @@ async function prompt() {
 
 async function main() {
 
-  try {
-    let answer = await prompt();
+  if (!assumeYes) {
+    try {
+      let answer = await prompt();
 
-    if (answer === 'n') {
-      throw 'foo';
+      if (answer === 'n') {
+        throw 'foo';
+      }
+    } catch (err) {
+      console.log('Done.');
+      process.exit(0);
     }
-  } catch (err) {
-    console.log('Done.');
-    process.exit(0);
   }
 
   const defaultBundles = [
@@ -55,10 +61,12 @@ async function main() {
   ];
   const enabledBundles = [];
 
-  const modified = cp.execSync('git status -uno --porcelain').toString();
-  if (modified) {
-    console.warn('You have uncommitted changes. For safety setup-bundles must be run on a clean repository.');
-    process.exit(1);
+  if (!force) {
+    const modified = cp.execSync('git status -uno --porcelain').toString();
+    if (modified) {
+      console.warn('You have uncommitted changes. For safety setup-bundles must be run on a clean repository.');
+      process.exit(1);
+    }
   }
 
   // add each bundle as a submodule
