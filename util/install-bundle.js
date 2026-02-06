@@ -54,7 +54,7 @@ function main() {
   }
 
   console.log("Adding bundle...");
-  cp.execSync(`git submodule add ${remote} bundles/${name}`);
+  cp.execSync(`git submodule add -f ${remote} bundles/${name}`);
 
   console.log("Installing deps...")
   if (fs.existsSync(`${gitRoot}/bundles/${name}/package.json`)) {
