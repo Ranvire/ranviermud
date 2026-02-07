@@ -33,6 +33,9 @@
   },
   "devDependencies": {
     "git-url-parse": "^16.1.0",
-    "mocha": "^10.8.2"
+    "mocha": "^11.7.5"
+  },
+  "overrides": {
+    "glob": "13.0.1"
   }
 }
