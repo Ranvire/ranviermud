@@ -27,12 +27,13 @@
     "ranvier-telnet": "github:Ranvire/ranvier-telnet",
     "semver": "^7.6.0",
     "sprintf-js": "^1.0.3",
-    "sty": "0.6.1",
-    "uuid": "^3.3.2",
     "winston": "^2.4.4"
   },
   "devDependencies": {
-    "git-url-parse": "^11.1.2",
-    "mocha": "^10.8.2"
+    "git-url-parse": "^16.1.0",
+    "mocha": "^11.7.5"
+  },
+  "overrides": {
+    "glob": "13.0.1"
   }
 }

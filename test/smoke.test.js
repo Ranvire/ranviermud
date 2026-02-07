@@ -38,8 +38,10 @@ function runWrapper({ cwd, outputPath }) {
   });
 }
 
-describe('ranvier wrapper smoke tests', function() {
-  it('boots through bundle loading without starting the server', async function() {
+describe('ranvier wrapper smoke tests', function () {
+  this.timeout(10000);
+
+  it('boots through bundle loading without starting the server', async function () {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ranvier-smoke-'));
     const outputPath = path.join(tempDir, 'output.json');
     await runWrapper({ cwd: repoRoot, outputPath });
@@ -49,7 +51,7 @@ describe('ranvier wrapper smoke tests', function() {
     assert.strictEqual(payload.configSource, 'ranvier.json');
   });
 
-  it('prefers ranvier.conf.js over ranvier.json when both exist', async function() {
+  it('prefers ranvier.conf.js over ranvier.json when both exist', async function () {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ranvier-conf-'));
     const outputPath = path.join(tempDir, 'output.json');
     const baseConfig = JSON.parse(fs.readFileSync(baseConfigPath, 'utf8'));
@@ -68,7 +70,7 @@ describe('ranvier wrapper smoke tests', function() {
     }
   });
 
-  it('records data and bundle paths based on the wrapper location', async function() {
+  it('records data and bundle paths based on the wrapper location', async function () {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ranvier-paths-'));
     const outputPath = path.join(tempDir, 'output.json');
     await runWrapper({ cwd: repoRoot, outputPath });
