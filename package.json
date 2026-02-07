@@ -32,7 +32,7 @@
     "winston": "^2.4.4"
   },
   "devDependencies": {
-    "git-url-parse": "^11.1.2",
+    "git-url-parse": "^16.1.0",
     "mocha": "^10.8.2"
   }
 }
