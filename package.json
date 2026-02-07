@@ -27,7 +27,6 @@
     "ranvier-telnet": "github:Ranvire/ranvier-telnet",
     "semver": "^7.6.0",
     "sprintf-js": "^1.0.3",
-    "sty": "0.6.1",
     "winston": "^2.4.4"
   },
   "devDependencies": {
