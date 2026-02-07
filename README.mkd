@@ -42,8 +42,8 @@ This is a checklist outlining the scope of this work and the current status.
 
 * [x] Fix manifest version placeholders (e.g., `optimist`, `sty`)
 * [x] Capture `npm audit` advisory data in CI (artifact only)
-* [ ] Remove or replace legacy CLI parser (`optimist`)
-* [ ] Upgrade `semver` to a non-vulnerable modern version
+* [x] Remove or replace legacy CLI parser (`optimist`)
+* [x] Upgrade `semver` to a non-vulnerable modern version
 * [ ] Address `git-url-parse` critical vulnerabilities (upgrade or replace)
 * [ ] Establish a clean install baseline (no critical vulnerabilities on `npm install`)
 * [ ] Audit and modernize remaining dependencies incrementally

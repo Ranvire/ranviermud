@@ -25,7 +25,7 @@
     "ranvier": "github:Ranvire/core",
     "ranvier-datasource-file": "github:Ranvire/datasource-file",
     "ranvier-telnet": "github:Ranvire/ranvier-telnet",
-    "semver": "^5.6.0",
+    "semver": "^7.6.0",
     "sprintf-js": "^1.0.3",
     "sty": "0.6.1",
     "uuid": "^3.3.2",
