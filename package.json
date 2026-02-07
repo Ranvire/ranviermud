@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "commander": "^2.19.0",
-    "optimist": "0.6.1",
     "rando-js": "^0.2.0",
     "ranvier": "github:Ranvire/core",
     "ranvier-datasource-file": "github:Ranvire/datasource-file",
