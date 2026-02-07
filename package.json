@@ -28,7 +28,6 @@
     "semver": "^7.6.0",
     "sprintf-js": "^1.0.3",
     "sty": "0.6.1",
-    "uuid": "^3.3.2",
     "winston": "^2.4.4"
   },
   "devDependencies": {
