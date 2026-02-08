@@ -85,6 +85,31 @@ function ensureCleanWorkingTree() {
   return 0;
 }
 
+function ensureRepoCleanBeforeWorktree() {
+  const result = spawnSync('git', ['status', '--porcelain'], {
+    cwd: repoRoot,
+    env: { ...process.env },
+    encoding: 'utf8',
+  });
+
+  if (result.error) {
+    console.error(result.error.message);
+    return result.status || 1;
+  }
+
+  if (typeof result.status === 'number' && result.status !== 0) {
+    return result.status;
+  }
+
+  if (result.stdout.trim()) {
+    console.error('Working tree has uncommitted changes.');
+    console.error('Commit your changes before running ci:local.');
+    return 1;
+  }
+
+  return 0;
+}
+
 function createWorktree() {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ranviermud-ci-local-'));
   const result = spawnSync('git', ['worktree', 'add', '--detach', tempRoot, 'HEAD'], {
@@ -219,6 +244,10 @@ function main() {
 
   try {
     if (!runInPlace) {
+      const preflightCode = ensureRepoCleanBeforeWorktree();
+      if (preflightCode !== 0) {
+        return preflightCode;
+      }
       console.log('\n==> Create isolated worktree');
       const result = createWorktree();
       if (result.exitCode !== 0) {
