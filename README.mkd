@@ -51,7 +51,7 @@ This is a checklist outlining the scope of this work and the current status.
 ### Documentation
 
 * [x] Clarify project scope and intent (this README)
-* [ ] Document baseline bundle set and expected layout
+* [x] Document baseline bundle set and expected layout
 * [x] Document CI and smoke test expectations
 
 ---
@@ -78,6 +78,7 @@ Ranvier is a [MUD](https://en.wikipedia.org/wiki/MUD) game engine whose goal is 
 ## Documentation
 
 Ranvier prides itself on having thorough documentation which is available on our website: [ranviermud.com](https://ranviermud.com)
+Baseline bundle set and expected layout: [docs/BaselineBundles.md](docs/BaselineBundles.md)
 
 ## Slack
 
