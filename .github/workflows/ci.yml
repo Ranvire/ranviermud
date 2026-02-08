@@ -21,12 +21,18 @@ jobs:
         run: npm ci
       - name: Capture npm audit report (JSON)
         run: npm audit --json > audit.json || true
+      - name: Capture npm audit report (JSON)
+        run: npm audit --json > $RUNNER_TEMP/audit.json || true
       - name: Upload npm audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: npm-audit-report
-          path: audit.json
+          path: $RUNNER_TEMP/audit.json
+      - name: Ensure clean working tree
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
       - name: Install bundles (CI)
         run: npm run ci:init
       - name: Smoke test login

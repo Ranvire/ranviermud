@@ -18,5 +18,8 @@ log/*.log
 # ignore mkdocs build target
 site/
 
+# ignore ci.yml audit results
+audit.json
+
 # ignore api.ai key
 bundles/ranvier-npc-behaviors/APIAIKEY
