@@ -12,6 +12,7 @@
   "scripts": {
     "start": "node ./ranvier -v",
     "ci:init": "node ./util/init-bundles.js --yes",
+    "ci:local": "node ./util/ci-local.js",
     "init": "node ./util/init-bundles.js",
     "update-bundle-remote": "node ./util/update-bundle-url.js",
     "remove-bundle": "node ./util/remove-bundle.js",
