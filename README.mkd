@@ -52,7 +52,7 @@ This is a checklist outlining the scope of this work and the current status.
 
 * [x] Clarify project scope and intent (this README)
 * [ ] Document baseline bundle set and expected layout
-* [ ] Document CI and smoke test expectations
+* [x] Document CI and smoke test expectations
 
 ---
 
