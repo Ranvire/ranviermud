@@ -2,7 +2,7 @@
 
 # Rantamuta Mud engine
 
-**Rantamuta** is a modern upgrade of the [**RanvierMUD**](https://github.com/RanvierMUD/ranviermud) engine.
+**Rantamuta/ranviermud** is a modern upgrade of the [**RanvierMUD/ranviermud**](https://github.com/RanvierMUD/ranviermud) engine. The repo name is kept for compatibility.
 
 At this point, one should be able to clone this repository, run `npm install`, `npm run init`, followed by `npm start`, and have a working MUD. You can log in using a telnet client with `telnet 127.0.0.1 4000`. This assumes Node.js 22+ is installed.
 
