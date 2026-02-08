@@ -1,8 +1,8 @@
-![Ranvire Sand Castle](https://avatars.githubusercontent.com/u/259600333?s=200&v=4)
+![Rantamuta Sand Castle](https://avatars.githubusercontent.com/u/259600333?s=200&v=4)
 
-# Ranvire Mud engine
+# Rantamuta Mud engine
 
-**Ranvire** is a modern upgrade of the [**RanvierMUD**](https://github.com/RanvierMUD/ranviermud) engine.
+**Rantamuta** is a modern upgrade of the [**RanvierMUD**](https://github.com/RanvierMUD/ranviermud) engine.
 
 At this point, one should be able to clone this repository, run `npm install`, `npm run init`, followed by `npm start`, and have a working MUD. You can log in using a telnet client with `telnet 127.0.0.1 4000`. This assumes Node.js 22+ is installed.
 
@@ -36,7 +36,7 @@ This is a checklist outlining the scope of this work and the current status.
 * [ ] Downgrade expected first-run conditions (e.g. missing account files) from hard errors to non-fatal states
 * [ ] Prevent missing optional content (effects, behaviors, help entries) from crashing the server
 * [ ] Add smoke tests that catch regressions in boot/login/play flow
-* [ ] [Add scenario tests for crafting, NPC dialog, and quest completion (npm test)](https://github.com/Ranvire/ranviermud/issues/5)
+* [ ] [Add scenario tests for crafting, NPC dialog, and quest completion (npm test)](https://github.com/Rantamuta/ranviermud/issues/5)
 
 ### Dependencies
 
