@@ -8,7 +8,7 @@ const readline = require('readline');
 
 const argv = process.argv.slice(2);
 const assumeYes = argv.includes('--yes') || argv.includes('-y');
-const force = assumeYes || argv.includes('--force');
+const allowDirty = argv.includes('--force') || argv.includes('--allow-dirty');
 
 const gitRoot = cp.execSync('git rev-parse --show-toplevel').toString('utf8').trim();
 process.chdir(gitRoot);
@@ -61,10 +61,11 @@ async function main() {
   ];
   const enabledBundles = [];
 
-  if (!force) {
+  if (!allowDirty) {
     const modified = cp.execSync('git status -uno --porcelain').toString();
     if (modified) {
       console.warn('You have uncommitted changes. For safety setup-bundles must be run on a clean repository.');
+      console.warn('Use --force to bypass this check if you know what you are doing.');
       process.exit(1);
     }
   }
