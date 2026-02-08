@@ -74,25 +74,28 @@ Assume compatibility matters unless explicitly instructed otherwise.
 This repository must maintain a **local equivalent of CI** so changes are reproducible without relying on external systems.
 
 - `npm test` **must always pass**.
-- `npm run ci:local` **must exist** and must run all CI checks that can reasonably be executed locally.
+- `npm run ci:local` **must exist** and **must always pass**
 - GitHub Actions CI is the final gate, but agents must not claim CI is green unless they can directly observe it.
 
 ### CI change rule
 
-If a PR changes GitHub Actions workflows or CI expectations:
+If a PR or task changes GitHub Actions workflows or CI expectations:
 
 - the same PR must update `ci:local` (and any underlying scripts) to mirror the change where possible
 - if a CI step cannot be mirrored locally, the PR must explicitly document it as CI-only and explain why
 
+### CI parity contract
+
+`ci:local` must be a step-for-step mirror of `.github/workflows/ci.yml`.
+
+- Each CI step must appear in `ci:local` in the same order and be functionally equivalent.
+- If a CI step cannot be reproduced locally, the `ci:local` script must include an inline comment that names the CI step verbatim, explains why it is skipped, and notes any local substitute.
+
+In the `ci:local` runner, annotate each step with `// CI: <step name>`. For skipped steps use `// CI: <step name> (SKIPPED)` and include a short reason on the next line.
+
 ### `ci:local` expectations
 
-`ci:local` should be a superset of local verification and typically include:
-
-- `npm test`
-- smoke tests (login / boot / basic interaction) where applicable
-- `npm pack` where packaging correctness matters
-
-agents must ensure `npm run ci:local` passes locally before stopping.
+agents must ensure `npm run ci:local` passes locally before stopping the current task.
 
 ## Required safety rails before risky changes
 
