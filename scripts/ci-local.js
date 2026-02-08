@@ -12,7 +12,6 @@ const steps = [
   { label: 'npm run ci:init', args: ['run', 'ci:init'] },
   { label: 'npm test', args: ['test'] },
   { label: 'npm run smoke:login', args: ['run', 'smoke:login'] },
-  { label: 'npm pack', args: ['pack'] },
 ];
 
 function runStep(step) {

@@ -12,12 +12,12 @@
   "scripts": {
     "start": "node ./ranvier -v",
     "ci:init": "node ./util/init-bundles.js --yes",
-    "ci:local": "node ./util/ci-local.js",
+    "ci:local": "node ./scripts/ci-local.js",
     "init": "node ./util/init-bundles.js",
     "update-bundle-remote": "node ./util/update-bundle-url.js",
     "remove-bundle": "node ./util/remove-bundle.js",
     "install-bundle": "node ./util/install-bundle.js",
-    "smoke:login": "node ./util/smoke-login.js",
+    "smoke:login": "node ./scripts/smoke-login.js",
     "test": "mocha"
   },
   "dependencies": {
