@@ -25,7 +25,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 ├─┬ mocha@10.8.2
 │ └─┬ glob@8.1.0
 │   └── inflight@1.0.6
-├─┬ ranvier@3.0.6 (git+ssh://git@github.com/Ranvire/core.git#4db5507be3e2a7cc1b78e8ed672a69ceb5a5aac3)
+├─┬ ranvier@3.0.6 (git+ssh://git@github.com/Rantamuta/core.git#4db5507be3e2a7cc1b78e8ed672a69ceb5a5aac3)
 │ ├── sty@0.6.1 deduped
 │ └── uuid@3.3.2 deduped
 ├── sty@0.6.1
@@ -34,8 +34,8 @@ ranviermud@2.0.0 /workspace/ranviermud
 $ npm ls ranvier ranvier-datasource-file ranvier-telnet --all
 ranviermud@2.0.0 /workspace/ranviermud
 ├── ranvier-datasource-file@1.0.3
-├── ranvier-telnet@1.0.3 (git+ssh://git@github.com/Ranvire/ranvier-telnet.git#cd25d4ea77a34dae58272827720880e2e082d360)
-└── ranvier@3.0.6 (git+ssh://git@github.com/Ranvire/core.git#4db5507be3e2a7cc1b78e8ed672a69ceb5a5aac3)
+├── ranvier-telnet@1.0.3 (git+ssh://git@github.com/Rantamuta/ranvier-telnet.git#cd25d4ea77a34dae58272827720880e2e082d360)
+└── ranvier@3.0.6 (git+ssh://git@github.com/Rantamuta/core.git#4db5507be3e2a7cc1b78e8ed672a69ceb5a5aac3)
 ```
 
 ### Relevant `package.json` sections
@@ -45,9 +45,9 @@ ranviermud@2.0.0 /workspace/ranviermud
   "commander": "^2.19.0",
   "optimist": "",
   "rando-js": "^0.2.0",
-  "ranvier": "github:Ranvire/core",
+  "ranvier": "github:Rantamuta/core",
   "ranvier-datasource-file": "^1.0.3",
-  "ranvier-telnet": "github:Ranvire/ranvier-telnet",
+  "ranvier-telnet": "github:Rantamuta/ranvier-telnet",
   "semver": "^5.6.0",
   "sprintf-js": "^1.0.3",
   "sty": "",
@@ -73,6 +73,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 ## Detailed notes
 
 ### `sty@0.6.1`
+
 - **Why it’s present**: listed in `dependencies` and also pulled in by `ranvier`.
 - **Direct vs transitive**: direct dependency, plus transitive via `ranvier`.
 - **Runtime vs dev**: runtime.
@@ -81,6 +82,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 - **Risk of behavior change**: medium. Terminal formatting/output could change if the replacement handles styles differently.
 
 ### `uuid@3.3.2`
+
 - **Why it’s present**: listed in `dependencies` and also pulled in by `ranvier`.
 - **Direct vs transitive**: direct dependency, plus transitive via `ranvier`.
 - **Runtime vs dev**: runtime.
@@ -89,6 +91,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 - **Risk of behavior change**: low to medium. API changes between major versions may require code adjustments (e.g., `uuid.v4()` import style).
 
 ### `glob@8.1.0`
+
 - **Why it’s present**: transitive dependency of `mocha` (per `npm ls` output above).
 - **Direct vs transitive**: transitive.
 - **Runtime vs dev**: dev-only.
@@ -97,6 +100,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 - **Risk of behavior change**: low. Only impacts test tooling, but newer `mocha` may change test runner behavior.
 
 ### `inflight@1.0.6`
+
 - **Why it’s present**: transitive dependency of `glob@8.1.0` (via `mocha`), per `npm ls` output above.
 - **Direct vs transitive**: transitive.
 - **Runtime vs dev**: dev-only.
@@ -105,6 +109,7 @@ ranviermud@2.0.0 /workspace/ranviermud
 - **Risk of behavior change**: low. Test tooling only.
 
 ### Security advisories (`npm audit`)
+
 - **Status**: `npm audit` failed with HTTP 403 from the registry. No advisories could be captured in this environment.
 - **Action required**: re-run `npm audit` in CI (repeatable context) with registry access to populate this section and update the summary table accordingly. Treat advisories as inputs to triage unless npm/lockfile versions are pinned.
 

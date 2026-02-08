@@ -6,7 +6,7 @@ const os = require('os');
 const commander = require('commander');
 const parse = require('git-url-parse');
 
-const DEFAULT_ORG = 'Ranvire';
+const DEFAULT_ORG = 'Rantamuta';
 const GITHUB_HOST = 'github.com';
 
 const gitRoot = cp.execSync('git rev-parse --show-toplevel').toString('utf8').trim();

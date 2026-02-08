@@ -11,7 +11,7 @@ const { spawnSync } = require('child_process');
 const repoRoot = path.resolve(__dirname, '..');
 const bundlesDir = path.join(repoRoot, 'bundles');
 const configPath = path.join(repoRoot, 'ranvier.json');
-const defaultOrg = 'Ranvire';
+const defaultOrg = 'Rantamuta';
 
 function isDirEmpty(dirPath) {
   const entries = fs.readdirSync(dirPath);
