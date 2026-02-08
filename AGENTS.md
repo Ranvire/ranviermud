@@ -95,7 +95,8 @@ In the `ci:local` runner, annotate each step with `// CI: <step name>`. For skip
 
 ### `ci:local` expectations
 
-agents must ensure `npm run ci:local` passes locally before stopping the current task.
+- agents must ensure `npm run ci:local` passes locally before stopping the current task.
+- `ci:local` must be a faithful representation of `.github/workflows/ci.yml`
 
 ## Required safety rails before risky changes
 

@@ -107,13 +107,6 @@ const steps = [
       { bin: npmCmd, args: ['audit', '--json'], allowFailure: true, captureStdoutTo: auditJsonPath },
     ],
   },
-  // CI: Capture npm audit report (JSON)
-  {
-    label: 'Capture npm audit report (JSON)',
-    commands: [
-      { bin: npmCmd, args: ['audit', '--json'], allowFailure: true, captureStdoutTo: auditTempPath },
-    ],
-  },
   // CI: Upload npm audit report (SKIPPED)
   // Reason: CI-only artifact upload.
   // CI: Ensure clean working tree
