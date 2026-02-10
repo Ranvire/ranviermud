@@ -1,6 +1,7 @@
 {
   "port": 4000,
   "bundles": [
+    "bundle-minimal"
   ],
   "dataSources": {
     "YamlArea": {

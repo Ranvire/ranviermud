@@ -162,7 +162,11 @@ This gives broad coverage with quick failure for obvious breakage.
 
 ## 4) Scenario runner command sequences
 
-You can run multiple commands in one scenario pass:
+`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager. It is a lightweight smoke check for command parsing and command execution order without binding telnet or starting the full server.
+
+### Usage
+
+Run one or more command lines in order:
 
 ```bash
 node util/scenario-runner.js --command-line "look" --command-line "north" --command-line "inventory"
@@ -183,6 +187,38 @@ Then run:
 ```bash
 node util/scenario-runner.js --commands-file test/scenarios/smoke.commands
 ```
+
+If your commands require a room context (for example `look`), specify a starting room:
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --command-line "look"
+```
+
+Legacy fallback (kept for compatibility) builds a single command line:
+
+```bash
+node util/scenario-runner.js --command "look" --args "at statue"
+```
+
+### Output and exit behavior
+
+- Writes a start banner to stdout:
+  - `[info] scenario starting (commands=N)`
+- For each command, writes a run line to stdout:
+  - `[run] i/N: <raw command line>`
+- If a command name is unknown:
+  - writes an error line to stderr:
+    - `[error] command i/N not found: <name>`
+  - exits non-zero immediately (fail-fast)
+- On success, writes a completion line to stdout:
+  - `[info] scenario complete (commands=N, failed=0)`
+
+### Common failure modes
+
+- **Missing config**: `ranvier.conf.js` or `ranvier.json` not found at repo root.
+- **Bundle load failures**: any bundle error during boot will abort the scenario.
+- **Unknown commands**: command name not registered in the loaded bundles.
+- **No commands provided**: empty command list after parsing flags and files.
 
 ## 5) Troubleshooting common failures
 

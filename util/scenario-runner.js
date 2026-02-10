@@ -13,7 +13,7 @@ function ensureTrailingSeparator(targetPath) {
 }
 
 function printHelp() {
-  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"]');
+  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"] [--failOnUnknown]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
@@ -194,6 +194,12 @@ function createFakePlayer(output) {
   return player;
 }
 
+function flushOutput(output) {
+  if (output.length) {
+    process.stdout.write(`${output.join('\n')}\n`);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
@@ -205,6 +211,7 @@ async function main() {
   const commandLines = collectCommandLines(args, root);
   const parsedCommands = commandLines.map(parseCommandLine).filter(Boolean);
   const roomRef = getRoomRef(args);
+  const failOnUnknown = args.includes('--failOnUnknown');
 
   if (!parsedCommands.length) {
     throw new Error('No commands were provided to execute');
@@ -230,15 +237,16 @@ async function main() {
   }
 
   console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
+  let unknownCount = 0;
 
   for (let i = 0; i < parsedCommands.length; i += 1) {
     const commandSpec = parsedCommands[i];
     const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
 
     if (!commandMatch) {
-      console.error(`[error] command ${i + 1}/${parsedCommands.length} not found: ${commandSpec.name}`);
-      process.exit(1);
-      return;
+      unknownCount += 1;
+      player.send('Unknown command.');
+      continue;
     }
 
     const { command, alias } = commandMatch;
@@ -246,11 +254,11 @@ async function main() {
     await command.execute(commandSpec.args, player, alias);
   }
 
-  if (output.length) {
-    process.stdout.write(`${output.join('\n')}\n`);
-  }
+  flushOutput(output);
 
-  console.log(`[info] scenario complete (commands=${parsedCommands.length}, failed=0)`);
+  const failed = failOnUnknown && unknownCount > 0 ? 1 : 0;
+  console.log(`[info] scenario complete (commands=${parsedCommands.length}, unknown=${unknownCount}, failed=${failed})`);
+  process.exit(failed);
 }
 
 main().catch((error) => {
