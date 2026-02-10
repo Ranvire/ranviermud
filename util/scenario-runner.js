@@ -198,6 +198,7 @@ function createFakePlayer(output) {
 function flushOutput(output) {
   if (output.length) {
     process.stdout.write(`${output.join('\n')}\n`);
+    output.length = 0;
   }
 }
 
@@ -244,15 +245,18 @@ async function main() {
     const commandSpec = parsedCommands[i];
     const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
 
+    console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
+
     if (!commandMatch) {
       unknownCount += 1;
       player.send('Unknown command.');
+      flushOutput(output);
       continue;
     }
 
     const { command, alias } = commandMatch;
-    console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
     await command.execute(commandSpec.args, player, alias);
+    flushOutput(output);
   }
 
   flushOutput(output);
