@@ -9,8 +9,8 @@ It includes these commands:
 - `npm run validate:bundles` — checks bundle filesystem structure
 - `node util/validate-bundles.js --engine` — loads bundles through the engine (without starting telnet/transports)
 - `node util/validate-bundles.js --engine --players` — also checks saved player attributes for compatibility
-- `npm run test:bundles` — runs bundle-local `npm test` scripts when they exist
-- `npm run test:bundles:contract` — runs wrapper-level contract tests
+- `npm run bundles:test` — runs bundle-local `npm test` scripts when they exist
+- `npm run bundles:test:contract` — runs wrapper-level contract tests
 
 ---
 
@@ -61,33 +61,39 @@ You updated one or more bundles (or changed enabled bundle config) and want conf
 Run from repository root:
 
 1. **Fast structure validation**
+
    ```bash
    npm run validate:bundles
    ```
 
 2. **Engine bundle-load validation (no transports/telnet startup)**
+
    ```bash
    node util/validate-bundles.js --engine
    ```
 
 3. **Persisted player compatibility check**
+
    ```bash
    node util/validate-bundles.js --engine --players
    ```
 
 4. **Strict mode for CI gate (treat unknown player attributes as errors)**
+
    ```bash
    node util/validate-bundles.js --engine --players --strict
    ```
 
 5. **Run bundle-local tests when present**
+
    ```bash
-   npm run test:bundles
+   npm run bundles:test
    ```
 
 6. **Run wrapper contract coverage**
+
    ```bash
-   npm run test:bundles:contract
+   npm run bundles:test:contract
    ```
 
 If all required steps pass, you have strong confidence in bundle integration health.
@@ -153,12 +159,11 @@ A practical order for deeper validation:
 ```bash
 npm run validate:bundles
 node util/validate-bundles.js --engine --players --strict
-npm run test:bundles
-npm run test:bundles:contract
+npm run bundles:test
+npm run bundles:test:contract
 ```
 
 This gives broad coverage with quick failure for obvious breakage.
-
 
 ## 4) Scenario runner command sequences
 
@@ -240,7 +245,7 @@ node util/scenario-runner.js --command "look" --args "at statue"
 - [ ] `npm run validate:bundles` passes
 - [ ] `node util/validate-bundles.js --engine` passes
 - [ ] `node util/validate-bundles.js --engine --players` reviewed (or strict-gated)
-- [ ] `npm run test:bundles` completed
-- [ ] `npm run test:bundles:contract` passes
+- [ ] `npm run bundles:test` completed
+- [ ] `npm run bundles:test:contract` passes
 
 When this checklist is green, you are in a good place to merge or deploy.
