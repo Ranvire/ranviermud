@@ -17,6 +17,7 @@ function ensureTrailingSeparator(targetPath) {
 function printHelp() {
   console.log('Usage: node util/scenario-runner.js [--command "look"] [--commandsFile <path>] [--room "area:roomId"] [--failOnUnknown] [--json]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
+  console.log('       node util/scenario-runner.js --playerEmit:<event> [args]');
   console.log('       --failOnUnknown        exit non-zero if any unknown commands are encountered');
   console.log('       --json                 emit machine-readable JSON output');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
@@ -41,6 +42,10 @@ function loadConfig(root) {
 }
 
 function parseCommandLine(line) {
+  if (line && typeof line === 'object' && line.type) {
+    return line;
+  }
+
   const trimmed = String(line || '').trim();
   if (!trimmed) {
     return null;
@@ -48,10 +53,11 @@ function parseCommandLine(line) {
 
   const spaceIndex = trimmed.indexOf(' ');
   if (spaceIndex === -1) {
-    return { raw: trimmed, name: trimmed, args: '' };
+    return { type: 'command', raw: trimmed, name: trimmed, args: '' };
   }
 
   return {
+    type: 'command',
     raw: trimmed,
     name: trimmed.slice(0, spaceIndex),
     args: trimmed.slice(spaceIndex + 1).trim(),
@@ -97,6 +103,28 @@ function collectCommandLines(args, root) {
       continue;
     }
 
+    if (arg.startsWith('--playerEmit:')) {
+      const eventName = arg.slice('--playerEmit:'.length).trim();
+      if (!eventName) {
+        throw new Error('Missing value for --playerEmit');
+      }
+
+      let argValue = '';
+      if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+        argValue = args[i + 1];
+        i += 1;
+      }
+
+      const raw = argValue ? `playerEmit:${eventName} ${argValue}` : `playerEmit:${eventName}`;
+      commandLines.push({
+        type: 'playerEmit',
+        raw,
+        event: eventName,
+        args: argValue,
+      });
+      continue;
+    }
+
     if (arg === '--args') {
       if (i + 1 >= args.length) {
         throw new Error('Missing value for --args');
@@ -118,7 +146,12 @@ function collectCommandLines(args, root) {
   }
 
   if (commandLines.length === 1 && legacyArgs && !sawCommandsFile) {
-    commandLines[0] = `${commandLines[0]} ${legacyArgs}`;
+    if (typeof commandLines[0] === 'string') {
+      commandLines[0] = `${commandLines[0]} ${legacyArgs}`;
+    } else if (commandLines[0].type === 'command') {
+      commandLines[0].raw = `${commandLines[0].raw} ${legacyArgs}`;
+      commandLines[0].args = legacyArgs;
+    }
   }
 
   if (!commandLines.length) {
@@ -196,7 +229,7 @@ async function bootEngine(root, config) {
   return GameState;
 }
 
-function createFakePlayer(output) {
+function createFakePlayer(output, GameState) {
   const Ranvier = require('ranvier');
   const socket = {
     writable: true,
@@ -210,6 +243,11 @@ function createFakePlayer(output) {
 
   player.send = (line) => output.push(String(line));
   player.echo = (line) => output.push(String(line));
+
+  if (GameState && GameState.PlayerManager) {
+    GameState.PlayerManager.events.attach(player);
+    GameState.PlayerManager.addPlayer(player);
+  }
 
   return player;
 }
@@ -315,6 +353,42 @@ function createLogCapture(emitEvent) {
   };
 }
 
+function resolveMovementCommand(player, command) {
+  if (!player.room) {
+    return null;
+  }
+
+  const room = player.room;
+  const primaryDirections = ['north', 'south', 'east', 'west', 'up', 'down'];
+  for (const direction of primaryDirections) {
+    if (direction.indexOf(command) === 0) {
+      const exit = room.getExits().find(roomExit => roomExit.direction === direction) || null;
+      return { direction, roomExit: exit };
+    }
+  }
+
+  const secondaryDirections = [
+    { abbr: 'ne', name: 'northeast' },
+    { abbr: 'nw', name: 'northwest' },
+    { abbr: 'se', name: 'southeast' },
+    { abbr: 'sw', name: 'southwest' },
+  ];
+
+  for (const direction of secondaryDirections) {
+    if (direction.abbr === command || direction.name.indexOf(command) === 0) {
+      const exit = room.getExits().find(roomExit => roomExit.direction === direction.name) || null;
+      return { direction: direction.name, roomExit: exit };
+    }
+  }
+
+  const otherExit = room.getExits().find(roomExit => roomExit.direction === command);
+  if (otherExit) {
+    return { direction: otherExit.direction, roomExit: otherExit };
+  }
+
+  return null;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
@@ -348,7 +422,7 @@ async function main() {
   const config = loadConfig(root);
   const GameState = await bootEngine(root, config);
   const output = [];
-  const player = createFakePlayer(output);
+  const player = createFakePlayer(output, GameState);
 
   if (roomRef) {
     const room = GameState.RoomManager.getRoom(roomRef);
@@ -368,6 +442,10 @@ async function main() {
     }
   }
 
+  if (player && typeof player.hydrate === 'function' && !player.__hydrated) {
+    player.hydrate(GameState);
+  }
+
   if (jsonOutput) {
     emitEvent({ type: 'start', commands: parsedCommands.length });
   } else {
@@ -377,7 +455,6 @@ async function main() {
 
   for (let i = 0; i < parsedCommands.length; i += 1) {
     const commandSpec = parsedCommands[i];
-    const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
 
     if (jsonOutput) {
       emitEvent({ type: 'run', index: i + 1, raw: commandSpec.raw });
@@ -385,6 +462,28 @@ async function main() {
       console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
     }
 
+    if (commandSpec.type === 'playerEmit') {
+      if (commandSpec.event === 'move') {
+        const direction = (commandSpec.args || '').trim().toLowerCase();
+        const movement = direction ? resolveMovementCommand(player, direction) : null;
+        const roomExit = movement ? movement.roomExit : null;
+        player.emit('move', { roomExit, originalCommand: direction });
+      } else {
+        player.emit(commandSpec.event, commandSpec.args);
+      }
+      flushOutput(output, emitOutput);
+      continue;
+    }
+
+    const commandName = commandSpec.name.toLowerCase();
+    const movement = resolveMovementCommand(player, commandName);
+    if (movement) {
+      player.emit('move', { roomExit: movement.roomExit, originalCommand: movement.direction });
+      flushOutput(output, emitOutput);
+      continue;
+    }
+
+    const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
     if (!commandMatch) {
       unknownCount += 1;
       player.send('Unknown command.');
