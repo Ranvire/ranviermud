@@ -3,7 +3,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { spawnSync } = require('child_process');
 
 function loadConfig(root, findings) {
   const confPath = path.join(root, 'ranvier.conf.js');
@@ -140,7 +139,7 @@ function summarizeFindings(findings) {
   return counts;
 }
 
-async function validateEngineLoad(root, config, findings) {
+async function validateEngineLoadInProcess(root, config, findings) {
   try {
     const Ranvier = require('ranvier');
     Ranvier.Data.setDataPath(path.join(root, 'data'));
@@ -204,80 +203,6 @@ async function validateEngineLoad(root, config, findings) {
     });
 
     return null;
-  }
-}
-
-function validateEngineLoad(root, findings, { playersMode, strictMode }) {
-  const commandArgs = [
-    path.join(__dirname, 'validate-bundles.js'),
-    '--engine-worker',
-    '--json',
-  ];
-
-  if (playersMode) {
-    commandArgs.push('--players');
-  }
-
-  if (strictMode) {
-    commandArgs.push('--strict');
-  }
-
-  const result = spawnSync(process.execPath, commandArgs, {
-    cwd: root,
-    encoding: 'utf8',
-  });
-
-  if (result.error) {
-    findings.push({
-      level: 'error',
-      code: 'ENGINE_VALIDATION_PROCESS_FAILED',
-      message: 'Failed to start engine validation subprocess',
-      detail: { message: result.error.message },
-    });
-    return;
-  }
-
-  let workerFindings;
-  try {
-    workerFindings = JSON.parse(result.stdout || '[]');
-  } catch (error) {
-    findings.push({
-      level: 'error',
-      code: 'ENGINE_VALIDATION_OUTPUT_INVALID',
-      message: 'Engine validation subprocess did not produce valid JSON output',
-      detail: {
-        status: result.status,
-        signal: result.signal,
-        stdout: result.stdout,
-        stderr: result.stderr,
-      },
-    });
-    return;
-  }
-
-  if (!Array.isArray(workerFindings)) {
-    findings.push({
-      level: 'error',
-      code: 'ENGINE_VALIDATION_OUTPUT_INVALID',
-      message: 'Engine validation subprocess returned an invalid findings payload',
-      detail: { payloadType: typeof workerFindings },
-    });
-    return;
-  }
-
-  findings.push(...workerFindings);
-
-  if (result.status !== 0 && !workerFindings.some((finding) => finding.level === 'error')) {
-    findings.push({
-      level: 'error',
-      code: 'ENGINE_VALIDATION_PROCESS_FAILED',
-      message: 'Engine validation subprocess exited non-zero without reporting an error finding',
-      detail: {
-        status: result.status,
-        signal: result.signal,
-        stderr: result.stderr,
-      },
-    });
   }
 }
 
@@ -378,7 +303,7 @@ async function main() {
 
     if (engineMode && !findings.some((finding) => finding.level === 'error')) {
       const runEngineChecks = async () => {
-        const gameState = await validateEngineLoad(root, config, findings);
+        const gameState = await validateEngineLoadInProcess(root, config, findings);
         if (gameState && playersMode) {
           await validatePlayers(gameState, findings, strictMode);
         }
