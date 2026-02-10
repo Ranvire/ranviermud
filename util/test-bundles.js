@@ -29,7 +29,7 @@ function main() {
   let ran = 0;
   let skipped = 0;
 
-  console.log(`[info] test:bundles starting (enabled=${bundles.length})`);
+  console.log(`[info] bundles:test starting (enabled=${bundles.length})`);
 
   for (const bundle of bundles) {
     const bundlePath = path.join(root, 'bundles', bundle);
@@ -66,7 +66,7 @@ function main() {
     console.log('[info] no enabled bundles configured');
   }
 
-  console.log(`[info] test:bundles complete (ran=${ran}, skipped=${skipped}, failed=${failed ? 1 : 0})`);
+  console.log(`[info] bundles:test complete (ran=${ran}, skipped=${skipped}, failed=${failed ? 1 : 0})`);
   process.exit(failed ? 1 : 0);
 }
 

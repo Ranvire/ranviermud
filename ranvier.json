@@ -1,8 +1,6 @@
 {
   "port": 4000,
-  "bundles": [
-    "bundle-minimal"
-  ],
+  "bundles": [],
   "dataSources": {
     "YamlArea": {
       "require": "ranvier-datasource-file.YamlAreaDataSource"

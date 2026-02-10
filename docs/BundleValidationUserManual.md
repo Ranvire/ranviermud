@@ -9,8 +9,8 @@ It includes these commands:
 - `npm run validate:bundles` — checks bundle filesystem structure
 - `node util/validate-bundles.js --engine` — loads bundles through the engine (without starting telnet/transports)
 - `node util/validate-bundles.js --engine --players` — also checks saved player attributes for compatibility
-- `npm run test:bundles` — runs bundle-local `npm test` scripts when they exist
-- `npm run test:bundles:contract` — runs wrapper-level contract tests
+- `npm run bundles:test` — runs bundle-local `npm test` scripts when they exist
+- `npm run bundles:test:contract` — runs wrapper-level contract tests
 
 ---
 
@@ -61,33 +61,39 @@ You updated one or more bundles (or changed enabled bundle config) and want conf
 Run from repository root:
 
 1. **Fast structure validation**
+
    ```bash
    npm run validate:bundles
    ```
 
 2. **Engine bundle-load validation (no transports/telnet startup)**
+
    ```bash
    node util/validate-bundles.js --engine
    ```
 
 3. **Persisted player compatibility check**
+
    ```bash
    node util/validate-bundles.js --engine --players
    ```
 
 4. **Strict mode for CI gate (treat unknown player attributes as errors)**
+
    ```bash
    node util/validate-bundles.js --engine --players --strict
    ```
 
 5. **Run bundle-local tests when present**
+
    ```bash
-   npm run test:bundles
+   npm run bundles:test
    ```
 
 6. **Run wrapper contract coverage**
+
    ```bash
-   npm run test:bundles:contract
+   npm run bundles:test:contract
    ```
 
 If all required steps pass, you have strong confidence in bundle integration health.
@@ -153,16 +159,15 @@ A practical order for deeper validation:
 ```bash
 npm run validate:bundles
 node util/validate-bundles.js --engine --players --strict
-npm run test:bundles
-npm run test:bundles:contract
+npm run bundles:test
+npm run bundles:test:contract
 ```
 
 This gives broad coverage with quick failure for obvious breakage.
 
-
 ## 4) Scenario runner command sequences
 
-`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager. It is a lightweight smoke check for command parsing and command execution order without binding telnet or starting the full server.
+`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager using a real `Player` instance with a dummy socket for output capture. It is a lightweight smoke check for command parsing, movement, and command execution order without binding telnet or starting the full server.
 
 ### Usage
 
@@ -194,10 +199,28 @@ If your commands require a room context (for example `look`), specify a starting
 node util/scenario-runner.js --room "limbo:white" --command "look"
 ```
 
+Movement commands are supported directly (e.g., `east`, `e`, `north`, `up`) and use the room exits in the current area:
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --command "east"
+```
+
+You can also emit player events explicitly using `--playerEmit:<event>`:
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --playerEmit:move east
+```
+
 Legacy fallback builds a single command line:
 
 ```bash
 node util/scenario-runner.js --command "look" --args "at statue"
+```
+
+JSON transcript output (structured events, no extra stdout):
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --command "look" --json
 ```
 
 ### Output and exit behavior
@@ -207,6 +230,8 @@ node util/scenario-runner.js --command "look" --args "at statue"
 - For each command, writes a run line to stdout:
   - `[run] i/N: <raw command line>`
 - If a command name is unknown, writes `Unknown command.` to the player output and continues.
+- `--failOnUnknown` does **not** stop the run on the first unknown command. It marks the run as failed **after** all commands complete, setting `failed=1` and exiting with code 1 when any unknown commands occurred.
+- When `--json` is present, stdout contains only JSON and engine log lines are captured as `type: "log"` events.
 - Writes a completion line to stdout:
   - `[info] scenario complete (commands=N, unknown=U, failed=F)`
 - Unknown flags are ignored.
@@ -240,7 +265,7 @@ node util/scenario-runner.js --command "look" --args "at statue"
 - [ ] `npm run validate:bundles` passes
 - [ ] `node util/validate-bundles.js --engine` passes
 - [ ] `node util/validate-bundles.js --engine --players` reviewed (or strict-gated)
-- [ ] `npm run test:bundles` completed
-- [ ] `npm run test:bundles:contract` passes
+- [ ] `npm run bundles:test` completed
+- [ ] `npm run bundles:test:contract` passes
 
 When this checklist is green, you are in a good place to merge or deploy.
