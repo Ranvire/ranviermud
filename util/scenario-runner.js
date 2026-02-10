@@ -4,6 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 
+let activeLogCapture = null;
+
 function ensureTrailingSeparator(targetPath) {
   if (!targetPath) {
     return targetPath;
@@ -228,6 +230,91 @@ function flushOutput(output, emitOutput) {
   }
 }
 
+function resolveLogLevel(text, fallback) {
+  const match = text.match(/\s-\s*(info|warn|error):/i);
+  if (match) {
+    return match[1].toLowerCase();
+  }
+  return fallback;
+}
+
+function createLogCapture(emitEvent) {
+  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+  const originalStderrWrite = process.stderr.write.bind(process.stderr);
+  let stdoutBuffer = '';
+  let stderrBuffer = '';
+
+  const emitLogLine = (line, fallback) => {
+    if (!line) {
+      return;
+    }
+    emitEvent({
+      type: 'log',
+      level: resolveLogLevel(line, fallback),
+      text: line,
+    });
+  };
+
+  const captureWrite = (kind, chunk, encoding, callback) => {
+    let cb = callback;
+    let enc = encoding;
+    if (typeof encoding === 'function') {
+      cb = encoding;
+      enc = undefined;
+    }
+
+    const text = Buffer.isBuffer(chunk) ? chunk.toString(enc) : String(chunk);
+    if (kind === 'stdout') {
+      stdoutBuffer += text;
+      const lines = stdoutBuffer.split(/\r?\n/u);
+      stdoutBuffer = lines.pop();
+      for (const line of lines) {
+        emitLogLine(line, 'info');
+      }
+    } else {
+      stderrBuffer += text;
+      const lines = stderrBuffer.split(/\r?\n/u);
+      stderrBuffer = lines.pop();
+      for (const line of lines) {
+        emitLogLine(line, 'error');
+      }
+    }
+
+    if (typeof cb === 'function') {
+      cb();
+    }
+
+    return true;
+  };
+
+  process.stdout.write = (chunk, encoding, callback) => captureWrite('stdout', chunk, encoding, callback);
+  process.stderr.write = (chunk, encoding, callback) => captureWrite('stderr', chunk, encoding, callback);
+
+  const flush = () => {
+    if (stdoutBuffer) {
+      emitLogLine(stdoutBuffer, 'info');
+      stdoutBuffer = '';
+    }
+    if (stderrBuffer) {
+      emitLogLine(stderrBuffer, 'error');
+      stderrBuffer = '';
+    }
+  };
+
+  const restore = () => {
+    flush();
+    process.stdout.write = originalStdoutWrite;
+    process.stderr.write = originalStderrWrite;
+  };
+
+  return {
+    flush,
+    restore,
+    writeStdoutRaw: originalStdoutWrite,
+    writeStderrRaw: originalStderrWrite,
+  };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
@@ -246,10 +333,6 @@ async function main() {
     throw new Error('No commands were provided to execute');
   }
 
-  const config = loadConfig(root);
-  const GameState = await bootEngine(root, config);
-  const output = [];
-  const player = createFakePlayer(output);
   const events = [];
   const emitEvent = (event) => {
     if (jsonOutput) {
@@ -259,10 +342,21 @@ async function main() {
   const emitOutput = jsonOutput
     ? (text) => emitEvent({ type: 'output', text })
     : null;
+  const logCapture = jsonOutput ? createLogCapture(emitEvent) : null;
+  activeLogCapture = logCapture;
+
+  const config = loadConfig(root);
+  const GameState = await bootEngine(root, config);
+  const output = [];
+  const player = createFakePlayer(output);
 
   if (roomRef) {
     const room = GameState.RoomManager.getRoom(roomRef);
     if (!room) {
+      if (logCapture) {
+        logCapture.restore();
+        activeLogCapture = null;
+      }
       console.error(`[error] room not found: ${roomRef}`);
       process.exit(1);
       return;
@@ -309,6 +403,9 @@ async function main() {
 
   if (jsonOutput) {
     emitEvent({ type: 'complete' });
+    if (logCapture) {
+      logCapture.flush();
+    }
     const payload = {
       meta: {
         commands: parsedCommands.length,
@@ -317,7 +414,13 @@ async function main() {
       },
       events,
     };
-    process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    if (logCapture) {
+      logCapture.writeStdoutRaw(`${JSON.stringify(payload, null, 2)}\n`);
+      logCapture.restore();
+      activeLogCapture = null;
+    } else {
+      process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    }
   } else {
     console.log(`[info] scenario complete (commands=${parsedCommands.length}, unknown=${unknownCount}, failed=${failed})`);
   }
@@ -325,6 +428,10 @@ async function main() {
 }
 
 main().catch((error) => {
+  if (activeLogCapture) {
+    activeLogCapture.restore();
+    activeLogCapture = null;
+  }
   console.error(error.stack || error.message);
   process.exit(1);
 });
