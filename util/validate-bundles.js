@@ -188,7 +188,7 @@ async function validateEngineLoadInProcess(root, config, findings) {
 
     const bundleManager = new Ranvier.BundleManager(`${path.join(root, 'bundles')}/`, GameState);
     GameState.BundleManager = bundleManager;
-    await bundleManager.loadBundles(true, GameState.Config.get('bundles', []));
+    await bundleManager.loadBundles();
 
     return GameState;
   } catch (error) {

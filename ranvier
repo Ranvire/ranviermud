@@ -139,7 +139,7 @@ async function init(restartServer) {
   // Setup bundlemanager
   const BundleManager = new Ranvier.BundleManager(__dirname + '/bundles/', GameState);
   GameState.BundleManager = BundleManager;
-  await BundleManager.loadBundles(true, Config.get('bundles', []));
+  await BundleManager.loadBundles();
   GameState.ServerEventManager.attach(GameState.GameServer);
 
   if (restartServer && !testMode) {
