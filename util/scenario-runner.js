@@ -15,6 +15,7 @@ function ensureTrailingSeparator(targetPath) {
 function printHelp() {
   console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"] [--failOnUnknown]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
+  console.log('       --failOnUnknown        exit non-zero if any unknown commands are encountered');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
 }
