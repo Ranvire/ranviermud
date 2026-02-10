@@ -116,7 +116,7 @@ async function main() {
     return;
   }
 
-  await command.execute(commandArgs, player, GameState);
+  await command.execute(commandArgs, player, commandName);
 
   if (output.length) {
     process.stdout.write(`${output.join('\n')}\n`);
