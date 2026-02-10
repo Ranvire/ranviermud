@@ -13,7 +13,7 @@ function ensureTrailingSeparator(targetPath) {
 }
 
 function printHelp() {
-  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>]');
+  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
@@ -86,6 +86,16 @@ function collectCommandLines(args, root) {
       const commandFilePath = path.resolve(root, args[i + 1]);
       commandLines.push(...readCommandsFile(commandFilePath));
       i += 1;
+      continue;
+    }
+
+    if (arg === '--room') {
+      if (i + 1 >= args.length) {
+        throw new Error('Missing value for --room');
+      }
+
+      i += 1;
+      continue;
     }
   }
 
@@ -98,6 +108,19 @@ function collectCommandLines(args, root) {
   }
 
   return commandLines;
+}
+
+function getRoomRef(args) {
+  const roomIndex = args.indexOf('--room');
+  if (roomIndex === -1) {
+    return null;
+  }
+
+  if (roomIndex + 1 >= args.length) {
+    throw new Error('Missing value for --room');
+  }
+
+  return args[roomIndex + 1];
 }
 
 async function bootEngine(root, config) {
@@ -153,13 +176,22 @@ async function bootEngine(root, config) {
 }
 
 function createFakePlayer(output) {
-  return {
+  const player = {
     name: 'ScenarioPlayer',
     commandQueue: [],
-    socket: { write: (line) => output.push(String(line)) },
+    socket: {
+      writable: true,
+      _prompted: false,
+      write: (line) => output.push(String(line)),
+    },
     send: (line) => output.push(String(line)),
     echo: (line) => output.push(String(line)),
+    getBroadcastTargets() {
+      return [this];
+    },
   };
+
+  return player;
 }
 
 async function main() {
@@ -172,6 +204,7 @@ async function main() {
   const root = process.cwd();
   const commandLines = collectCommandLines(args, root);
   const parsedCommands = commandLines.map(parseCommandLine).filter(Boolean);
+  const roomRef = getRoomRef(args);
 
   if (!parsedCommands.length) {
     throw new Error('No commands were provided to execute');
@@ -181,6 +214,20 @@ async function main() {
   const GameState = await bootEngine(root, config);
   const output = [];
   const player = createFakePlayer(output);
+
+  if (roomRef) {
+    const room = GameState.RoomManager.getRoom(roomRef);
+    if (!room) {
+      console.error(`[error] room not found: ${roomRef}`);
+      process.exit(1);
+      return;
+    }
+
+    player.room = room;
+    if (typeof room.addPlayer === 'function') {
+      room.addPlayer(player);
+    }
+  }
 
   console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
 
