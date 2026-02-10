@@ -229,13 +229,32 @@ async function bootEngine(root, config) {
   return GameState;
 }
 
-function createFakePlayer(output, GameState) {
-  const Ranvier = require('ranvier');
+function createNullSocket(output) {
   const socket = {
     writable: true,
     _prompted: false,
-    write: (line) => output.push(String(line)),
+    write: (line) => {
+      output.push(String(line));
+      return true;
+    },
+    command: () => undefined,
+    toggleEcho: () => undefined,
+    end: () => undefined,
+    destroy: () => undefined,
+    pause: () => undefined,
+    resume: () => undefined,
+    setEncoding: () => undefined,
+    once: function () { return this; },
+    on: function () { return this; },
+    emit: () => false,
   };
+
+  return socket;
+}
+
+function createFakePlayer(output, GameState) {
+  const Ranvier = require('ranvier');
+  const socket = createNullSocket(output);
   const player = new Ranvier.Player({
     name: 'ScenarioPlayer',
     socket,
