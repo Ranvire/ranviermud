@@ -224,7 +224,7 @@ async function bootEngine(root, config) {
 
   const bundleManager = new Ranvier.BundleManager(`${path.join(root, 'bundles')}/`, GameState);
   GameState.BundleManager = bundleManager;
-  await bundleManager.loadBundles();
+  await bundleManager.loadBundles(true, GameState.Config.get('bundles', []));
 
   return GameState;
 }
