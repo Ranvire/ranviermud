@@ -98,10 +98,28 @@ function validateFilesystem(root, config, findings) {
   }
 }
 
-async function validateEngineLoadInProcess(root, config, findings) {
+
+function summarizeFindings(findings) {
+  const counts = { error: 0, warn: 0 };
+  for (const finding of findings) {
+    if (finding.level === 'error') {
+      counts.error += 1;
+    } else if (finding.level === 'warn') {
+      counts.warn += 1;
+    }
+  }
+
+  return counts;
+}
+
+function ensureTrailingSeparator(dirPath) {
+  return dirPath.endsWith(path.sep) ? dirPath : `${dirPath}${path.sep}`;
+}
+
+async function validateEngineLoad(root, config, findings) {
   try {
     const Ranvier = require('ranvier');
-    Ranvier.Data.setDataPath(path.join(root, 'data'));
+    Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
     Ranvier.Config.load(config);
 
     const GameState = {
@@ -319,11 +337,26 @@ async function main() {
   const findings = [];
   const config = loadConfig(root, findings);
 
+  if (!jsonOnly) {
+    const modeParts = ['filesystem'];
+    if (engineMode) {
+      modeParts.push('engine');
+    }
+    if (playersMode) {
+      modeParts.push('players');
+    }
+
+    console.log(`[info] validate:bundles starting (${modeParts.join(', ')})`);
+  }
+
   if (config) {
     validateFilesystem(root, config, findings);
 
     if (engineMode && !findings.some((finding) => finding.level === 'error')) {
-      validateEngineLoad(root, findings, { playersMode, strictMode });
+      const gameState = await validateEngineLoad(root, config, findings);
+      if (gameState && playersMode) {
+        await validatePlayers(gameState, findings, strictMode);
+      }
     }
   }
 
@@ -341,6 +374,12 @@ async function main() {
   }
 
   const hasErrors = findings.some((finding) => finding.level === 'error');
+
+  if (!jsonOnly) {
+    const counts = summarizeFindings(findings);
+    console.log(`[info] validate:bundles complete (errors=${counts.error}, warnings=${counts.warn})`);
+  }
+
   process.exit(hasErrors ? 1 : 0);
 }
 

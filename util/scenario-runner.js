@@ -25,9 +25,13 @@ function loadConfig(root) {
   throw new Error('No ranvier.json or ranvier.conf.js found');
 }
 
+function ensureTrailingSeparator(dirPath) {
+  return dirPath.endsWith(path.sep) ? dirPath : `${dirPath}${path.sep}`;
+}
+
 async function bootEngine(root, config) {
   const Ranvier = require('ranvier');
-  Ranvier.Data.setDataPath(path.join(root, 'data'));
+  Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
   Ranvier.Config.load(config);
 
   const GameState = {
@@ -112,7 +116,7 @@ async function main() {
     return;
   }
 
-  await command.execute(commandArgs, player, GameState);
+  await command.execute(commandArgs, player, commandName);
 
   if (output.length) {
     process.stdout.write(`${output.join('\n')}\n`);
