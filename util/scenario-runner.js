@@ -195,20 +195,19 @@ async function bootEngine(root, config) {
 }
 
 function createFakePlayer(output) {
-  const player = {
-    name: 'ScenarioPlayer',
-    commandQueue: [],
-    socket: {
-      writable: true,
-      _prompted: false,
-      write: (line) => output.push(String(line)),
-    },
-    send: (line) => output.push(String(line)),
-    echo: (line) => output.push(String(line)),
-    getBroadcastTargets() {
-      return [this];
-    },
+  const Ranvier = require('ranvier');
+  const socket = {
+    writable: true,
+    _prompted: false,
+    write: (line) => output.push(String(line)),
   };
+  const player = new Ranvier.Player({
+    name: 'ScenarioPlayer',
+    socket,
+  });
+
+  player.send = (line) => output.push(String(line));
+  player.echo = (line) => output.push(String(line));
 
   return player;
 }

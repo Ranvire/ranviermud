@@ -162,7 +162,7 @@ This gives broad coverage with quick failure for obvious breakage.
 
 ## 4) Scenario runner command sequences
 
-`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager. It is a lightweight smoke check for command parsing and command execution order without binding telnet or starting the full server.
+`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager using a real `Player` instance with a dummy socket for output capture. It is a lightweight smoke check for command parsing and command execution order without binding telnet or starting the full server.
 
 ### Usage
 
