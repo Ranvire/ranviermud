@@ -4,6 +4,14 @@
 const fs = require('fs');
 const path = require('path');
 
+function ensureTrailingSeparator(targetPath) {
+  if (!targetPath) {
+    return targetPath;
+  }
+
+  return /[\\/]$/.test(targetPath) ? targetPath : `${targetPath}${path.sep}`;
+}
+
 function printHelp() {
   console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
