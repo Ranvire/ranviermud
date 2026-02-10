@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 function loadConfig(root, findings) {
   const confPath = path.join(root, 'ranvier.conf.js');
@@ -178,6 +179,98 @@ async function validateEngineLoad(root, config, findings) {
   }
 }
 
+function validateEngineLoad(root, findings, { playersMode, strictMode }) {
+  const commandArgs = [
+    path.join(__dirname, 'validate-bundles.js'),
+    '--engine-worker',
+    '--json',
+  ];
+
+  if (playersMode) {
+    commandArgs.push('--players');
+  }
+
+  if (strictMode) {
+    commandArgs.push('--strict');
+  }
+
+  const result = spawnSync(process.execPath, commandArgs, {
+    cwd: root,
+    encoding: 'utf8',
+  });
+
+  if (result.error) {
+    findings.push({
+      level: 'error',
+      code: 'ENGINE_VALIDATION_PROCESS_FAILED',
+      message: 'Failed to start engine validation subprocess',
+      detail: { message: result.error.message },
+    });
+    return;
+  }
+
+  let workerFindings;
+  try {
+    workerFindings = JSON.parse(result.stdout || '[]');
+  } catch (error) {
+    findings.push({
+      level: 'error',
+      code: 'ENGINE_VALIDATION_OUTPUT_INVALID',
+      message: 'Engine validation subprocess did not produce valid JSON output',
+      detail: {
+        status: result.status,
+        signal: result.signal,
+        stdout: result.stdout,
+        stderr: result.stderr,
+      },
+    });
+    return;
+  }
+
+  if (!Array.isArray(workerFindings)) {
+    findings.push({
+      level: 'error',
+      code: 'ENGINE_VALIDATION_OUTPUT_INVALID',
+      message: 'Engine validation subprocess returned an invalid findings payload',
+      detail: { payloadType: typeof workerFindings },
+    });
+    return;
+  }
+
+  findings.push(...workerFindings);
+
+  if (result.status !== 0 && !workerFindings.some((finding) => finding.level === 'error')) {
+    findings.push({
+      level: 'error',
+      code: 'ENGINE_VALIDATION_PROCESS_FAILED',
+      message: 'Engine validation subprocess exited non-zero without reporting an error finding',
+      detail: {
+        status: result.status,
+        signal: result.signal,
+        stderr: result.stderr,
+      },
+    });
+  }
+}
+
+async function runEngineWorker(args) {
+  const root = process.cwd();
+  const findings = [];
+  const playersMode = args.includes('--players');
+  const strictMode = args.includes('--strict');
+  const config = loadConfig(root, findings);
+
+  if (config && !findings.some((finding) => finding.level === 'error')) {
+    const gameState = await validateEngineLoadInProcess(root, config, findings);
+    if (gameState && playersMode) {
+      await validatePlayers(gameState, findings, strictMode);
+    }
+  }
+
+  process.stdout.write(`${JSON.stringify(findings, null, 2)}\n`);
+  process.exit(findings.some((finding) => finding.level === 'error') ? 1 : 0);
+}
+
 
 
 async function validatePlayers(GameState, findings, strictMode) {
@@ -226,6 +319,12 @@ async function validatePlayers(GameState, findings, strictMode) {
 
 async function main() {
   const args = process.argv.slice(2);
+
+  if (args.includes('--engine-worker')) {
+    await runEngineWorker(args);
+    return;
+  }
+
   const jsonOnly = args.includes('--json');
   const strictMode = args.includes('--strict');
   const playersMode = args.includes('--players');

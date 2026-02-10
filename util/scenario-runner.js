@@ -94,7 +94,7 @@ function collectCommandLines(args, root) {
 
 async function bootEngine(root, config) {
   const Ranvier = require('ranvier');
-  Ranvier.Data.setDataPath(path.join(root, 'data'));
+  Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
   Ranvier.Config.load(config);
 
   const GameState = {
