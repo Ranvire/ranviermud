@@ -18,7 +18,11 @@
     "remove-bundle": "node ./util/remove-bundle.js",
     "install-bundle": "node ./util/install-bundle.js",
     "smoke:login": "node ./scripts/smoke-login.js",
-    "test": "mocha"
+    "test": "mocha",
+    "validate:bundles": "node util/validate-bundles.js",
+    "test:bundles": "node util/test-bundles.js",
+    "test:bundles:contract": "node --test test/bundles.contract.test.js",
+    "scenario": "node util/scenario-runner.js"
   },
   "dependencies": {
     "commander": "^2.19.0",
