@@ -173,5 +173,10 @@ if (testMode && testOutputPath) {
     fs.writeFileSync(testOutputPath, JSON.stringify(testPayload, null, 2));
     process.exitCode = 1;
   });
+} else {
+  initPromise.catch((err) => {
+    console.error(err && err.stack ? err.stack : err);
+    process.exitCode = 1;
+  });
 }
 // vim: set syn=javascript :
