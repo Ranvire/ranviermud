@@ -209,6 +209,7 @@ node util/scenario-runner.js --command "look" --args "at statue"
 - If a command name is unknown, writes `Unknown command.` to the player output and continues.
 - Writes a completion line to stdout:
   - `[info] scenario complete (commands=N, unknown=U, failed=F)`
+- Unknown flags are ignored.
 
 ### Common failure modes
 

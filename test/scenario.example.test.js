@@ -19,17 +19,19 @@ test('scenario runner help exits successfully', () => {
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /Usage:/);
-  assert.match(result.stdout, /--commands-file/);
-  assert.match(result.stdout, /--command-line/);
+  assert.match(result.stdout, /--commandsFile/);
+  assert.match(result.stdout, /--command/);
 });
 
-test('scenario runner executes command lines in order and fails fast on first unknown command', () => {
-  const result = runScenario(['--command-line', 'unknown-first', '--command-line', 'unknown-second']);
+test('scenario runner executes command lines in order and continues on unknown commands', () => {
+  const result = runScenario(['--command', 'unknown-first', '--command', 'unknown-second', '--failOnUnknown']);
 
   assert.equal(result.status, 1);
   assert.match(result.stdout, /\[info\] scenario starting \(commands=2\)/);
-  assert.match(result.stderr, /\[error\] command 1\/2 not found: unknown-first/);
-  assert.doesNotMatch(result.stderr, /unknown-second/);
+  assert.match(result.stdout, /\[run\] 1\/2: unknown-first/);
+  assert.match(result.stdout, /Unknown command\./);
+  assert.match(result.stdout, /\[run\] 2\/2: unknown-second/);
+  assert.match(result.stdout, /\[info\] scenario complete \(commands=2, unknown=2, failed=1\)/);
 });
 
 test('scenario runner command file ignores comments and blank lines', () => {
@@ -38,32 +40,36 @@ test('scenario runner command file ignores comments and blank lines', () => {
 
   fs.writeFileSync(commandsPath, '# comment\n\nunknown-alpha\n\n# another\nunknown-beta\n', 'utf8');
 
-  const result = runScenario(['--commands-file', commandsPath]);
+  const result = runScenario(['--commandsFile', commandsPath, '--failOnUnknown']);
 
   assert.equal(result.status, 1);
   assert.match(result.stdout, /\[info\] scenario starting \(commands=2\)/);
-  assert.match(result.stderr, /\[error\] command 1\/2 not found: unknown-alpha/);
-  assert.doesNotMatch(result.stderr, /unknown-beta/);
+  assert.match(result.stdout, /\[run\] 1\/2: unknown-alpha/);
+  assert.match(result.stdout, /Unknown command\./);
+  assert.match(result.stdout, /\[run\] 2\/2: unknown-beta/);
+  assert.match(result.stdout, /\[info\] scenario complete \(commands=2, unknown=2, failed=1\)/);
 });
 
-test('scenario runner reports error for missing --commands-file value', () => {
-  const result = runScenario(['--commands-file']);
+test('scenario runner reports error for missing --commandsFile value', () => {
+  const result = runScenario(['--commandsFile']);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /Missing value for --commands-file/);
+  assert.match(result.stderr, /Missing value for --commandsFile/);
 });
 
-test('scenario runner reports error for missing --command-line value', () => {
-  const result = runScenario(['--command-line']);
+test('scenario runner reports error for missing --command value', () => {
+  const result = runScenario(['--command']);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /Missing value for --command-line/);
+  assert.match(result.stderr, /Missing value for --command/);
 });
 
 test('scenario runner legacy --command/--args fallback builds one command line', () => {
   const result = runScenario(['--command', 'legacy-unknown', '--args', 'abc def']);
 
-  assert.equal(result.status, 1);
+  assert.equal(result.status, 0);
   assert.match(result.stdout, /\[info\] scenario starting \(commands=1\)/);
-  assert.match(result.stderr, /\[error\] command 1\/1 not found: legacy-unknown/);
+  assert.match(result.stdout, /\[run\] 1\/1: legacy-unknown abc def/);
+  assert.match(result.stdout, /Unknown command\./);
+  assert.match(result.stdout, /\[info\] scenario complete \(commands=1, unknown=1, failed=0\)/);
 });

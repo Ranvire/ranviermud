@@ -19,6 +19,7 @@ function printHelp() {
   console.log('       --json                 emit machine-readable JSON output');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
+  console.log('Unknown flags are ignored.');
 }
 
 function loadConfig(root) {
