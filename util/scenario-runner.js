@@ -13,7 +13,7 @@ function ensureTrailingSeparator(targetPath) {
 }
 
 function printHelp() {
-  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"] [--failOnUnknown]');
+  console.log('Usage: node util/scenario-runner.js [--command "look"] [--commandsFile <path>] [--room "area:roomId"] [--failOnUnknown] [--json]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
   console.log('       --failOnUnknown        exit non-zero if any unknown commands are encountered');
   console.log('       --json                 emit machine-readable JSON output');
@@ -66,13 +66,15 @@ function readCommandsFile(filePath) {
 
 function collectCommandLines(args, root) {
   const commandLines = [];
+  let legacyArgs = '';
+  let sawCommandsFile = false;
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
 
-    if (arg === '--command-line') {
+    if (arg === '--command') {
       if (i + 1 >= args.length) {
-        throw new Error('Missing value for --command-line');
+        throw new Error('Missing value for --command');
       }
 
       commandLines.push(args[i + 1]);
@@ -80,13 +82,24 @@ function collectCommandLines(args, root) {
       continue;
     }
 
-    if (arg === '--commands-file') {
+    if (arg === '--commandsFile') {
       if (i + 1 >= args.length) {
-        throw new Error('Missing value for --commands-file');
+        throw new Error('Missing value for --commandsFile');
       }
 
       const commandFilePath = path.resolve(root, args[i + 1]);
       commandLines.push(...readCommandsFile(commandFilePath));
+      sawCommandsFile = true;
+      i += 1;
+      continue;
+    }
+
+    if (arg === '--args') {
+      if (i + 1 >= args.length) {
+        throw new Error('Missing value for --args');
+      }
+
+      legacyArgs = args[i + 1];
       i += 1;
       continue;
     }
@@ -101,11 +114,14 @@ function collectCommandLines(args, root) {
     }
   }
 
+  if (commandLines.length === 1 && legacyArgs && !sawCommandsFile) {
+    commandLines[0] = `${commandLines[0]} ${legacyArgs}`;
+  }
+
   if (!commandLines.length) {
     const commandIndex = args.indexOf('--command');
     const commandName = commandIndex >= 0 ? args[commandIndex + 1] : 'look';
-    const argIndex = args.indexOf('--args');
-    const commandArgs = argIndex >= 0 ? args[argIndex + 1] : '';
+    const commandArgs = legacyArgs;
     commandLines.push(commandArgs ? `${commandName} ${commandArgs}` : commandName);
   }
 

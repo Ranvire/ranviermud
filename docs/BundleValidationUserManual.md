@@ -169,7 +169,7 @@ This gives broad coverage with quick failure for obvious breakage.
 Run one or more command lines in order:
 
 ```bash
-node util/scenario-runner.js --command-line "look" --command-line "north" --command-line "inventory"
+node util/scenario-runner.js --command "look" --command "north" --command "inventory"
 ```
 
 Or store commands in a line-separated file (`#` comments and blank lines are ignored):
@@ -185,16 +185,16 @@ inventory
 Then run:
 
 ```bash
-node util/scenario-runner.js --commands-file test/scenarios/smoke.commands
+node util/scenario-runner.js --commandsFile test/scenarios/smoke.commands
 ```
 
 If your commands require a room context (for example `look`), specify a starting room:
 
 ```bash
-node util/scenario-runner.js --room "limbo:white" --command-line "look"
+node util/scenario-runner.js --room "limbo:white" --command "look"
 ```
 
-Legacy fallback (kept for compatibility) builds a single command line:
+Legacy fallback builds a single command line:
 
 ```bash
 node util/scenario-runner.js --command "look" --args "at statue"
@@ -206,12 +206,9 @@ node util/scenario-runner.js --command "look" --args "at statue"
   - `[info] scenario starting (commands=N)`
 - For each command, writes a run line to stdout:
   - `[run] i/N: <raw command line>`
-- If a command name is unknown:
-  - writes an error line to stderr:
-    - `[error] command i/N not found: <name>`
-  - exits non-zero immediately (fail-fast)
-- On success, writes a completion line to stdout:
-  - `[info] scenario complete (commands=N, failed=0)`
+- If a command name is unknown, writes `Unknown command.` to the player output and continues.
+- Writes a completion line to stdout:
+  - `[info] scenario complete (commands=N, unknown=U, failed=F)`
 
 ### Common failure modes
 
