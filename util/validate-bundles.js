@@ -112,10 +112,14 @@ function summarizeFindings(findings) {
   return counts;
 }
 
+function ensureTrailingSeparator(dirPath) {
+  return dirPath.endsWith(path.sep) ? dirPath : `${dirPath}${path.sep}`;
+}
+
 async function validateEngineLoad(root, config, findings) {
   try {
     const Ranvier = require('ranvier');
-    Ranvier.Data.setDataPath(path.join(root, 'data'));
+    Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
     Ranvier.Config.load(config);
 
     const GameState = {
