@@ -26,6 +26,10 @@ function main() {
   const config = loadConfig(root);
   const bundles = Array.isArray(config.bundles) ? config.bundles : [];
   let failed = false;
+  let ran = 0;
+  let skipped = 0;
+
+  console.log(`[info] test:bundles starting (enabled=${bundles.length})`);
 
   for (const bundle of bundles) {
     const bundlePath = path.join(root, 'bundles', bundle);
@@ -33,16 +37,19 @@ function main() {
 
     if (!fs.existsSync(packagePath)) {
       console.log(`[skip] ${bundle}: no package.json`);
+      skipped += 1;
       continue;
     }
 
     const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
     if (!pkg.scripts || !pkg.scripts.test) {
       console.log(`[skip] ${bundle}: no test script`);
+      skipped += 1;
       continue;
     }
 
     console.log(`[run] ${bundle}: npm test`);
+    ran += 1;
     const result = spawnSync('npm', ['test'], {
       cwd: bundlePath,
       stdio: 'inherit',
@@ -54,6 +61,11 @@ function main() {
     }
   }
 
+  if (bundles.length === 0) {
+    console.log('[info] no enabled bundles configured');
+  }
+
+  console.log(`[info] test:bundles complete (ran=${ran}, skipped=${skipped}, failed=${failed ? 1 : 0})`);
   process.exit(failed ? 1 : 0);
 }
 
