@@ -49,6 +49,34 @@ function formatFinding(finding) {
   return `[${finding.level.toUpperCase()}] ${finding.code}: ${finding.message}${contextText}`;
 }
 
+function withMutedStdout(fn) {
+  const originalWrite = process.stdout.write;
+  process.stdout.write = (chunk, encoding, callback) => {
+    if (typeof encoding === 'function') {
+      encoding();
+    } else if (typeof callback === 'function') {
+      callback();
+    }
+    return true;
+  };
+
+  const restore = () => {
+    process.stdout.write = originalWrite;
+  };
+
+  try {
+    const result = fn();
+    if (result && typeof result.finally === 'function') {
+      return result.finally(restore);
+    }
+    restore();
+    return result;
+  } catch (error) {
+    restore();
+    throw error;
+  }
+}
+
 function validateFilesystem(root, config, findings) {
   const bundles = Array.isArray(config.bundles) ? config.bundles : [];
 
@@ -112,14 +140,10 @@ function summarizeFindings(findings) {
   return counts;
 }
 
-function ensureTrailingSeparator(dirPath) {
-  return dirPath.endsWith(path.sep) ? dirPath : `${dirPath}${path.sep}`;
-}
-
 async function validateEngineLoad(root, config, findings) {
   try {
     const Ranvier = require('ranvier');
-    Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
+    Ranvier.Data.setDataPath(path.join(root, 'data'));
     Ranvier.Config.load(config);
 
     const GameState = {
@@ -353,9 +377,17 @@ async function main() {
     validateFilesystem(root, config, findings);
 
     if (engineMode && !findings.some((finding) => finding.level === 'error')) {
-      const gameState = await validateEngineLoad(root, config, findings);
-      if (gameState && playersMode) {
-        await validatePlayers(gameState, findings, strictMode);
+      const runEngineChecks = async () => {
+        const gameState = await validateEngineLoad(root, config, findings);
+        if (gameState && playersMode) {
+          await validatePlayers(gameState, findings, strictMode);
+        }
+      };
+
+      if (jsonOnly) {
+        await withMutedStdout(runEngineChecks);
+      } else {
+        await runEngineChecks();
       }
     }
   }

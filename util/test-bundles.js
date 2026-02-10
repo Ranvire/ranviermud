@@ -36,7 +36,8 @@ function main() {
     const packagePath = path.join(bundlePath, 'package.json');
 
     if (!fs.existsSync(packagePath)) {
-      console.log(`[skip] ${bundle}: no package.json`);
+      console.log(`[fail] ${bundle}: no package.json`);
+      failed = true;
       skipped += 1;
       continue;
     }

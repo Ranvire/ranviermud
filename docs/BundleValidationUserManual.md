@@ -159,7 +159,32 @@ npm run test:bundles:contract
 
 This gives broad coverage with quick failure for obvious breakage.
 
-## 4) Troubleshooting common failures
+
+## 4) Scenario runner command sequences
+
+You can run multiple commands in one scenario pass:
+
+```bash
+node util/scenario-runner.js --command-line "look" --command-line "north" --command-line "inventory"
+```
+
+Or store commands in a line-separated file (`#` comments and blank lines are ignored):
+
+```text
+# test/scenarios/smoke.commands
+look
+north
+look
+inventory
+```
+
+Then run:
+
+```bash
+node util/scenario-runner.js --commands-file test/scenarios/smoke.commands
+```
+
+## 5) Troubleshooting common failures
 
 - **`CONFIG_NOT_FOUND`**
   - Add `ranvier.conf.js` or `ranvier.json` at repo root.
