@@ -4,11 +4,22 @@
 const fs = require('fs');
 const path = require('path');
 
+function ensureTrailingSeparator(targetPath) {
+  if (!targetPath) {
+    return targetPath;
+  }
+
+  return /[\\/]$/.test(targetPath) ? targetPath : `${targetPath}${path.sep}`;
+}
+
 function printHelp() {
-  console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>]');
+  console.log('Usage: node util/scenario-runner.js [--command "look"] [--commandsFile <path>] [--room "area:roomId"] [--failOnUnknown] [--json]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
+  console.log('       --failOnUnknown        exit non-zero if any unknown commands are encountered');
+  console.log('       --json                 emit machine-readable JSON output');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
+  console.log('Unknown flags are ignored.');
 }
 
 function loadConfig(root) {
@@ -56,13 +67,15 @@ function readCommandsFile(filePath) {
 
 function collectCommandLines(args, root) {
   const commandLines = [];
+  let legacyArgs = '';
+  let sawCommandsFile = false;
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
 
-    if (arg === '--command-line') {
+    if (arg === '--command') {
       if (i + 1 >= args.length) {
-        throw new Error('Missing value for --command-line');
+        throw new Error('Missing value for --command');
       }
 
       commandLines.push(args[i + 1]);
@@ -70,26 +83,63 @@ function collectCommandLines(args, root) {
       continue;
     }
 
-    if (arg === '--commands-file') {
+    if (arg === '--commandsFile') {
       if (i + 1 >= args.length) {
-        throw new Error('Missing value for --commands-file');
+        throw new Error('Missing value for --commandsFile');
       }
 
       const commandFilePath = path.resolve(root, args[i + 1]);
       commandLines.push(...readCommandsFile(commandFilePath));
+      sawCommandsFile = true;
       i += 1;
+      continue;
     }
+
+    if (arg === '--args') {
+      if (i + 1 >= args.length) {
+        throw new Error('Missing value for --args');
+      }
+
+      legacyArgs = args[i + 1];
+      i += 1;
+      continue;
+    }
+
+    if (arg === '--room') {
+      if (i + 1 >= args.length) {
+        throw new Error('Missing value for --room');
+      }
+
+      i += 1;
+      continue;
+    }
+  }
+
+  if (commandLines.length === 1 && legacyArgs && !sawCommandsFile) {
+    commandLines[0] = `${commandLines[0]} ${legacyArgs}`;
   }
 
   if (!commandLines.length) {
     const commandIndex = args.indexOf('--command');
     const commandName = commandIndex >= 0 ? args[commandIndex + 1] : 'look';
-    const argIndex = args.indexOf('--args');
-    const commandArgs = argIndex >= 0 ? args[argIndex + 1] : '';
+    const commandArgs = legacyArgs;
     commandLines.push(commandArgs ? `${commandName} ${commandArgs}` : commandName);
   }
 
   return commandLines;
+}
+
+function getRoomRef(args) {
+  const roomIndex = args.indexOf('--room');
+  if (roomIndex === -1) {
+    return null;
+  }
+
+  if (roomIndex + 1 >= args.length) {
+    throw new Error('Missing value for --room');
+  }
+
+  return args[roomIndex + 1];
 }
 
 async function bootEngine(root, config) {
@@ -145,13 +195,38 @@ async function bootEngine(root, config) {
 }
 
 function createFakePlayer(output) {
-  return {
+  const player = {
     name: 'ScenarioPlayer',
     commandQueue: [],
-    socket: { write: (line) => output.push(String(line)) },
+    socket: {
+      writable: true,
+      _prompted: false,
+      write: (line) => output.push(String(line)),
+    },
     send: (line) => output.push(String(line)),
     echo: (line) => output.push(String(line)),
+    getBroadcastTargets() {
+      return [this];
+    },
   };
+
+  return player;
+}
+
+function flushOutput(output, emitOutput) {
+  if (output.length) {
+    if (emitOutput) {
+      for (const entry of output) {
+        const lines = String(entry).split(/\r?\n/u);
+        for (let i = 0; i < lines.length; i += 1) {
+          emitOutput(lines[i]);
+        }
+      }
+    } else {
+      process.stdout.write(`${output.join('\n')}\n`);
+    }
+    output.length = 0;
+  }
 }
 
 async function main() {
@@ -164,6 +239,9 @@ async function main() {
   const root = process.cwd();
   const commandLines = collectCommandLines(args, root);
   const parsedCommands = commandLines.map(parseCommandLine).filter(Boolean);
+  const roomRef = getRoomRef(args);
+  const failOnUnknown = args.includes('--failOnUnknown');
+  const jsonOutput = args.includes('--json');
 
   if (!parsedCommands.length) {
     throw new Error('No commands were provided to execute');
@@ -173,29 +251,78 @@ async function main() {
   const GameState = await bootEngine(root, config);
   const output = [];
   const player = createFakePlayer(output);
+  const events = [];
+  const emitEvent = (event) => {
+    if (jsonOutput) {
+      events.push(event);
+    }
+  };
+  const emitOutput = jsonOutput
+    ? (text) => emitEvent({ type: 'output', text })
+    : null;
 
-  console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
+  if (roomRef) {
+    const room = GameState.RoomManager.getRoom(roomRef);
+    if (!room) {
+      console.error(`[error] room not found: ${roomRef}`);
+      process.exit(1);
+      return;
+    }
+
+    player.room = room;
+    if (typeof room.addPlayer === 'function') {
+      room.addPlayer(player);
+    }
+  }
+
+  if (jsonOutput) {
+    emitEvent({ type: 'start', commands: parsedCommands.length });
+  } else {
+    console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
+  }
+  let unknownCount = 0;
 
   for (let i = 0; i < parsedCommands.length; i += 1) {
     const commandSpec = parsedCommands[i];
     const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
 
+    if (jsonOutput) {
+      emitEvent({ type: 'run', index: i + 1, raw: commandSpec.raw });
+    } else {
+      console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
+    }
+
     if (!commandMatch) {
-      console.error(`[error] command ${i + 1}/${parsedCommands.length} not found: ${commandSpec.name}`);
-      process.exit(1);
-      return;
+      unknownCount += 1;
+      player.send('Unknown command.');
+      emitEvent({ type: 'unknown', index: i + 1, raw: commandSpec.raw });
+      flushOutput(output, emitOutput);
+      continue;
     }
 
     const { command, alias } = commandMatch;
-    console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
     await command.execute(commandSpec.args, player, alias);
+    flushOutput(output, emitOutput);
   }
 
-  if (output.length) {
-    process.stdout.write(`${output.join('\n')}\n`);
-  }
+  const failed = failOnUnknown && unknownCount > 0 ? 1 : 0;
+  flushOutput(output, emitOutput);
 
-  console.log(`[info] scenario complete (commands=${parsedCommands.length}, failed=0)`);
+  if (jsonOutput) {
+    emitEvent({ type: 'complete' });
+    const payload = {
+      meta: {
+        commands: parsedCommands.length,
+        unknown: unknownCount,
+        failed,
+      },
+      events,
+    };
+    process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+  } else {
+    console.log(`[info] scenario complete (commands=${parsedCommands.length}, unknown=${unknownCount}, failed=${failed})`);
+  }
+  process.exit(failed);
 }
 
 main().catch((error) => {

@@ -13,6 +13,17 @@ const allowDirty = argv.includes('--force') || argv.includes('--allow-dirty');
 const gitRoot = cp.execSync('git rev-parse --show-toplevel').toString('utf8').trim();
 process.chdir(gitRoot);
 
+function isPathIgnored(targetPath) {
+  const result = cp.spawnSync('git', ['check-ignore', '-q', targetPath], { stdio: 'ignore' });
+  if (result.status === 0) {
+    return true;
+  }
+  if (result.status === 1) {
+    return false;
+  }
+  return false;
+}
+
 async function prompt() {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -70,7 +81,7 @@ async function main() {
     }
   }
 
-  // add each bundle as a submodule
+  // install each bundle
   for (const bundle of defaultBundles) {
     const bundlePath = `bundles/${bundle}`;
     cp.execSync(`npm run install-bundle ${bundle}`);
@@ -86,12 +97,18 @@ async function main() {
 
   cp.execSync('git add ranvier.json');
 
+  const bundlesIgnored = isPathIgnored('bundles/.bundle-ignore-check');
+  const bundleMode = bundlesIgnored ? 'locally under bundles/ (ignored by git)' : 'as submodules';
+  const commitHint = bundlesIgnored
+    ? '  git commit -m "Enable example bundles"'
+    : '  git commit -m "Install bundles"';
+
   console.info(`
 -------------------------------------------------------------------------------
-Example bundles have been installed as submodules. It's recommended that you now
-run the following commands:
+Example bundles have been installed ${bundleMode}. It's recommended that you now
+run the following command to save the ranvier.json update:
 
-  git commit -m "Install bundles"
+${commitHint}
 
 You're all set! See https://ranviermud.com for guides and API references
 `);
