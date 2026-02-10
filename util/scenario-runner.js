@@ -16,6 +16,7 @@ function printHelp() {
   console.log('Usage: node util/scenario-runner.js [--command-line "look"] [--commands-file <path>] [--room "area:roomId"] [--failOnUnknown]');
   console.log('       node util/scenario-runner.js [--command <name>] [--args "<args>"]');
   console.log('       --failOnUnknown        exit non-zero if any unknown commands are encountered');
+  console.log('       --json                 emit machine-readable JSON output');
   console.log('Boots the engine in no-transport mode, loads bundles, and executes one or more commands.');
   console.log('Command files are line-separated: one command per line, # for comments, blank lines ignored.');
 }
@@ -195,9 +196,18 @@ function createFakePlayer(output) {
   return player;
 }
 
-function flushOutput(output) {
+function flushOutput(output, emitOutput) {
   if (output.length) {
-    process.stdout.write(`${output.join('\n')}\n`);
+    if (emitOutput) {
+      for (const entry of output) {
+        const lines = String(entry).split(/\r?\n/u);
+        for (let i = 0; i < lines.length; i += 1) {
+          emitOutput(lines[i]);
+        }
+      }
+    } else {
+      process.stdout.write(`${output.join('\n')}\n`);
+    }
     output.length = 0;
   }
 }
@@ -214,6 +224,7 @@ async function main() {
   const parsedCommands = commandLines.map(parseCommandLine).filter(Boolean);
   const roomRef = getRoomRef(args);
   const failOnUnknown = args.includes('--failOnUnknown');
+  const jsonOutput = args.includes('--json');
 
   if (!parsedCommands.length) {
     throw new Error('No commands were provided to execute');
@@ -223,6 +234,15 @@ async function main() {
   const GameState = await bootEngine(root, config);
   const output = [];
   const player = createFakePlayer(output);
+  const events = [];
+  const emitEvent = (event) => {
+    if (jsonOutput) {
+      events.push(event);
+    }
+  };
+  const emitOutput = jsonOutput
+    ? (text) => emitEvent({ type: 'output', text })
+    : null;
 
   if (roomRef) {
     const room = GameState.RoomManager.getRoom(roomRef);
@@ -238,31 +258,53 @@ async function main() {
     }
   }
 
-  console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
+  if (jsonOutput) {
+    emitEvent({ type: 'start', commands: parsedCommands.length });
+  } else {
+    console.log(`[info] scenario starting (commands=${parsedCommands.length})`);
+  }
   let unknownCount = 0;
 
   for (let i = 0; i < parsedCommands.length; i += 1) {
     const commandSpec = parsedCommands[i];
     const commandMatch = GameState.CommandManager.find(commandSpec.name, true);
 
-    console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
+    if (jsonOutput) {
+      emitEvent({ type: 'run', index: i + 1, raw: commandSpec.raw });
+    } else {
+      console.log(`[run] ${i + 1}/${parsedCommands.length}: ${commandSpec.raw}`);
+    }
 
     if (!commandMatch) {
       unknownCount += 1;
       player.send('Unknown command.');
-      flushOutput(output);
+      emitEvent({ type: 'unknown', index: i + 1, raw: commandSpec.raw });
+      flushOutput(output, emitOutput);
       continue;
     }
 
     const { command, alias } = commandMatch;
     await command.execute(commandSpec.args, player, alias);
-    flushOutput(output);
+    flushOutput(output, emitOutput);
   }
 
-  flushOutput(output);
-
   const failed = failOnUnknown && unknownCount > 0 ? 1 : 0;
-  console.log(`[info] scenario complete (commands=${parsedCommands.length}, unknown=${unknownCount}, failed=${failed})`);
+  flushOutput(output, emitOutput);
+
+  if (jsonOutput) {
+    emitEvent({ type: 'complete' });
+    const payload = {
+      meta: {
+        commands: parsedCommands.length,
+        unknown: unknownCount,
+        failed,
+      },
+      events,
+    };
+    process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+  } else {
+    console.log(`[info] scenario complete (commands=${parsedCommands.length}, unknown=${unknownCount}, failed=${failed})`);
+  }
   process.exit(failed);
 }
 
