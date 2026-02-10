@@ -1,0 +1,187 @@
+# Bundle Validation User Manual
+
+## What this is
+
+The **Bundle Validation and Testing Framework** is a set of wrapper-repo tools that helps you check whether your enabled bundles are healthy **before** starting the game server.
+
+It includes these commands:
+
+- `npm run validate:bundles` — checks bundle filesystem structure
+- `node util/validate-bundles.js --engine` — loads bundles through the engine (without starting telnet/transports)
+- `node util/validate-bundles.js --engine --players` — also checks saved player attributes for compatibility
+- `npm run test:bundles` — runs bundle-local `npm test` scripts when they exist
+- `npm run test:bundles:contract` — runs wrapper-level contract tests
+
+---
+
+## What it is for
+
+This tooling is for catching common integration problems early and deterministically, such as:
+
+- a configured bundle folder being missing
+- area folders missing `manifest.yml`
+- empty `help/` content
+- engine-time bundle load errors
+- unknown persisted player attributes after bundle changes
+- bundle test suite regressions (when bundle-local tests are available)
+
+In short: it helps you answer, “Are my enabled bundles safe to ship and run?”
+
+---
+
+## Who would use it
+
+Typical users include:
+
+- **Maintainers** of this wrapper repository validating changes before merge
+- **Bundle authors** checking compatibility against a real wrapper setup
+- **CI pipelines / automation** that need machine-readable validation (`--json`)
+- **Operators** preparing a deployment and wanting a fast preflight check
+
+---
+
+## Prototypical use case
+
+### Scenario
+
+You updated one or more bundles (or changed enabled bundle config) and want confidence that startup and persisted data compatibility are still okay.
+
+### Files involved
+
+- Config file (required):
+  - `ranvier.conf.js` (preferred if present), or
+  - `ranvier.json`
+- Bundles directory:
+  - `bundles/<bundleName>/...`
+- Optional persisted player data:
+  - `data/player/*.json` (via configured player entity loader)
+
+### Typical command flow
+
+Run from repository root:
+
+1. **Fast structure validation**
+   ```bash
+   npm run validate:bundles
+   ```
+
+2. **Engine bundle-load validation (no transports/telnet startup)**
+   ```bash
+   node util/validate-bundles.js --engine
+   ```
+
+3. **Persisted player compatibility check**
+   ```bash
+   node util/validate-bundles.js --engine --players
+   ```
+
+4. **Strict mode for CI gate (treat unknown player attributes as errors)**
+   ```bash
+   node util/validate-bundles.js --engine --players --strict
+   ```
+
+5. **Run bundle-local tests when present**
+   ```bash
+   npm run test:bundles
+   ```
+
+6. **Run wrapper contract coverage**
+   ```bash
+   npm run test:bundles:contract
+   ```
+
+If all required steps pass, you have strong confidence in bundle integration health.
+
+---
+
+## Philosophy: why this exists and how it works
+
+This framework is intentionally designed around a maintenance-first philosophy:
+
+- **Deterministic and non-interactive**: safe for unattended runs and CI.
+- **Layered checks**: start with low-cost filesystem checks, then engine load, then persistence compatibility.
+- **Compatibility-aware**: checks are aligned with actual wrapper config and bundle loading behavior.
+- **Minimal impact**: no telnet binding or server startup required for validation flows.
+- **Actionable results**: findings include level (`warn`/`error`), a stable code, and contextual metadata.
+
+### Findings model
+
+Findings are structured objects with this shape:
+
+```js
+{ level, code, message, bundle?, area?, path?, detail? }
+```
+
+- `level` is either `warn` or `error`
+- `error` findings cause non-zero exit status
+- `warn` findings are informational unless upgraded (e.g., by `--strict` in players mode)
+
+### Human output vs JSON output
+
+- Default output: human-readable lines for local development
+- `--json`: emits a JSON array only, making it easy for scripts/CI to parse
+
+---
+
+## Advanced usage
+
+## 1) Machine-readable CI integration
+
+Use JSON mode and fail on errors:
+
+```bash
+node util/validate-bundles.js --engine --players --strict --json
+```
+
+This supports policy automation such as:
+
+- parse findings and annotate pull requests
+- block deployment when any `error` finding exists
+- trend warning/error counts over time
+
+## 2) Choosing warning policy for player attributes
+
+Unknown persisted player attributes are a compatibility signal.
+
+- Use `--engine --players` during exploratory work to collect warnings.
+- Use `--engine --players --strict` for release gating when you want hard failure.
+
+## 3) Using wrapper and bundle tests together
+
+A practical order for deeper validation:
+
+```bash
+npm run validate:bundles
+node util/validate-bundles.js --engine --players --strict
+npm run test:bundles
+npm run test:bundles:contract
+```
+
+This gives broad coverage with quick failure for obvious breakage.
+
+## 4) Troubleshooting common failures
+
+- **`CONFIG_NOT_FOUND`**
+  - Add `ranvier.conf.js` or `ranvier.json` at repo root.
+- **`BUNDLE_DIR_MISSING`**
+  - Ensure bundle name in config matches `bundles/<name>/` exactly.
+- **`AREA_MANIFEST_MISSING`**
+  - Add `manifest.yml` under each area folder.
+- **`ENGINE_LOAD_FAILED`**
+  - Inspect stack trace in finding `detail` and fix bundle load issue.
+- **`UNKNOWN_PLAYER_ATTRIBUTE`**
+  - Either restore compatible attributes in bundles, migrate stored data, or run non-strict while planning migration.
+
+---
+
+## Quick start checklist
+
+- [ ] Config file exists (`ranvier.conf.js` or `ranvier.json`)
+- [ ] Enabled bundles are present under `bundles/`
+- [ ] `npm run validate:bundles` passes
+- [ ] `node util/validate-bundles.js --engine` passes
+- [ ] `node util/validate-bundles.js --engine --players` reviewed (or strict-gated)
+- [ ] `npm run test:bundles` completed
+- [ ] `npm run test:bundles:contract` passes
+
+When this checklist is green, you are in a good place to merge or deploy.
