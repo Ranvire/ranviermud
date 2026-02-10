@@ -12,6 +12,17 @@ const GITHUB_HOST = 'github.com';
 const gitRoot = cp.execSync('git rev-parse --show-toplevel').toString('utf8').trim();
 process.chdir(gitRoot);
 
+function isPathIgnored(targetPath) {
+  const result = cp.spawnSync('git', ['check-ignore', '-q', targetPath], { stdio: 'ignore' });
+  if (result.status === 0) {
+    return true;
+  }
+  if (result.status === 1) {
+    return false;
+  }
+  return false;
+}
+
 function resolveBundleRemote(remote) {
   if (!remote) {
     return remote;
@@ -41,8 +52,11 @@ function main() {
   const [remoteArg] = commander.args;
   const remote = resolveBundleRemote(remoteArg);
   const name = getBundleName(remote);
+  const bundlePath = `bundles/${name}`;
+  const bundlesIgnored = isPathIgnored('bundles/.bundle-ignore-check') || isPathIgnored(bundlePath);
+  const useSubmodule = !bundlesIgnored;
 
-  if (fs.existsSync(`${gitRoot}/bundles/${name}`)) {
+  if (fs.existsSync(`${gitRoot}/${bundlePath}`)) {
     console.error('Bundle already installed');
     process.exit(0);
   }
@@ -53,18 +67,30 @@ function main() {
     process.exit(0);
   }
 
-  console.log("Adding bundle...");
-  cp.execSync(`git submodule add -f ${remote} bundles/${name}`);
+  if (useSubmodule) {
+    console.log("Adding bundle...");
+    cp.execSync(`git submodule add -f ${remote} ${bundlePath}`);
+  } else {
+    console.log("Cloning bundle (ignored by git)...");
+    if (!fs.existsSync(`${gitRoot}/bundles`)) {
+      fs.mkdirSync(`${gitRoot}/bundles`, { recursive: true });
+    }
+    cp.execSync(`git clone ${remote} ${bundlePath}`);
+  }
 
   console.log("Installing deps...")
-  if (fs.existsSync(`${gitRoot}/bundles/${name}/package.json`)) {
+  if (fs.existsSync(`${gitRoot}/${bundlePath}/package.json`)) {
     const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
     cp.spawnSync(npmCmd, ['install', '--no-audit'], {
-      cwd: `${gitRoot}/bundles/${name}`
+      cwd: `${gitRoot}/${bundlePath}`
     });
   }
 
-  console.log(`Bundle installed. Commit the bundle with: git commit -m \"Added ${name} bundle\"`);
+  if (useSubmodule) {
+    console.log(`Bundle installed. Commit the bundle with: git commit -m \"Added ${name} bundle\"`);
+  } else {
+    console.log(`Bundle installed locally at ${bundlePath}. No git changes were made.`);
+  }
 }
 
 if (require.main === module) {
