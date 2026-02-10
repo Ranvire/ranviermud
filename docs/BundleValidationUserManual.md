@@ -167,7 +167,7 @@ This gives broad coverage with quick failure for obvious breakage.
 
 ## 4) Scenario runner command sequences
 
-`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager using a real `Player` instance with a dummy socket for output capture. It is a lightweight smoke check for command parsing and command execution order without binding telnet or starting the full server.
+`util/scenario-runner.js` boots the engine in no-transport mode, loads bundles, and runs a list of commands through the command manager using a real `Player` instance with a dummy socket for output capture. It is a lightweight smoke check for command parsing, movement, and command execution order without binding telnet or starting the full server.
 
 ### Usage
 
@@ -199,10 +199,28 @@ If your commands require a room context (for example `look`), specify a starting
 node util/scenario-runner.js --room "limbo:white" --command "look"
 ```
 
+Movement commands are supported directly (e.g., `east`, `e`, `north`, `up`) and use the room exits in the current area:
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --command "east"
+```
+
+You can also emit player events explicitly using `--playerEmit:<event>`:
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --playerEmit:move east
+```
+
 Legacy fallback builds a single command line:
 
 ```bash
 node util/scenario-runner.js --command "look" --args "at statue"
+```
+
+JSON transcript output (structured events, no extra stdout):
+
+```bash
+node util/scenario-runner.js --room "limbo:white" --command "look" --json
 ```
 
 ### Output and exit behavior
@@ -212,6 +230,8 @@ node util/scenario-runner.js --command "look" --args "at statue"
 - For each command, writes a run line to stdout:
   - `[run] i/N: <raw command line>`
 - If a command name is unknown, writes `Unknown command.` to the player output and continues.
+- `--failOnUnknown` does **not** stop the run on the first unknown command. It marks the run as failed **after** all commands complete, setting `failed=1` and exiting with code 1 when any unknown commands occurred.
+- When `--json` is present, stdout contains only JSON and engine log lines are captured as `type: "log"` events.
 - Writes a completion line to stdout:
   - `[info] scenario complete (commands=N, unknown=U, failed=F)`
 - Unknown flags are ignored.
