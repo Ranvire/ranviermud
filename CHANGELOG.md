@@ -20,6 +20,22 @@ All entries follow `docs/CHANGELOG_POLICY.md`.
   - PR #27 Remove broken default bundles
 - Timestamp: 2026.02.11 15:59
 
+### Package identity
+
+- Summary:
+  - Documented the decision to change this package name to `rantamuta-ranviermud` from `ranviermud`.
+- Why:
+  - The fork should be clearly distinguished from upstream RanvierMUD.
+  - This package is not consumed as a dependency, so renaming would not provide compatibility benefits.
+- Impact:
+  - No runtime behavior change.
+  - Only affects package metadata for tooling or future publishing decisions.
+- Migration/Action:
+  - None.
+- References:
+  - None.
+- Timestamp: 2026.02.11 16:26
+
 ### Explicit startup failure handling
 
 - Summary:

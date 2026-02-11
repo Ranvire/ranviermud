@@ -6,13 +6,22 @@
 
 At this point, one should be able to clone this repository, run `npm install`, `npm run init`, followed by `npm start`, and have a working MUD. You can log in using a telnet client with `telnet 127.0.0.1 4000`. This assumes Node.js 22+ is installed.
 
-The 1.0 release is intended to be a **pure maintenance upgrade**: updating the runtime to modern Node.js, adding CI via GitHub Actions, fixing long-standing crashes and sharp edges, and restoring a reliable out-of-the-box experience. There is no engine redesign and no intentional change to the core architecture.
+The v1.0 release is intended to be a **pure maintenance upgrade**: updating the runtime to modern Node.js, adding CI via GitHub Actions, fixing long-standing crashes and sharp edges, and restoring a reliable out-of-the-box experience. There is no engine redesign and no intentional change to the core architecture.
 
 If any of the original contributors would like this work merged upstream, please do reach out. I'm happy to help.
 
-## 1.0 Maintenance Checklist
+## v1.0 Maintenance Checklist
 
 This is a checklist outlining the scope of this work and the current status.
+
+### v1.0 Release prep
+
+* [x] Release `ranvier` (core) v1.0
+* [x] Release `ranvier-datasource-file` v1.0
+* [ ] Release `ranvier-telnet` v1.0
+* [ ] Pin releases in `package.json`
+* [ ] Update `package.json` metadata fields like `version`
+* [ ] Update CHANGELOG release info
 
 ### Runtime & Tooling
 
