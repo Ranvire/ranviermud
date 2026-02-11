@@ -1,9 +1,9 @@
 {
-  "name": "ranviermud",
-  "version": "2.0.0",
+  "name": "rantamuta-ranviermud",
+  "version": "1.0.0-beta.1",
   "repository": {
     "type": "git",
-    "url": "git://github.com/shawncplus/ranviermud.git"
+    "url": "git://github.com/Rantamuta/ranviermud.git"
   },
   "engines": {
     "node": ">=22"
@@ -19,18 +19,22 @@
     "install-bundle": "node ./util/install-bundle.js",
     "smoke:login": "node ./scripts/smoke-login.js",
     "test": "mocha",
-    "validate:bundles": "node util/validate-bundles.js",
+    "bundle:install": "node util/install-bundle.js",
+    "bundle:remove": "node util/remove-bundle.js",
+    "bundle:update": "node util/update-bundle-url.js",
+    "bundles:init": "node util/init-bundles.js",
     "bundles:test": "node util/test-bundles.js",
     "bundles:test:contract": "node --test test/bundles.contract.test.js",
-    "bundles:nuke": "rm -rf bundles && node -e \"const fs=require('fs');const p='ranvier.json';const data=JSON.parse(fs.readFileSync(p,'utf8'));data.bundles=[];fs.writeFileSync(p,JSON.stringify(data,null,2)+'\\\\n');\"",
+    "bundles:validate": "node util/validate-bundles.js",
+    "bundles:nuke": "node util/nuke-bundles.js",
     "scenario": "node util/scenario-runner.js"
   },
   "dependencies": {
     "commander": "^2.19.0",
     "rando-js": "^0.2.0",
-    "ranvier": "github:Rantamuta/core",
-    "ranvier-datasource-file": "github:Rantamuta/datasource-file",
-    "ranvier-telnet": "github:Rantamuta/ranvier-telnet",
+    "ranvier": "github:Rantamuta/core#v1.0.0",
+    "ranvier-datasource-file": "github:Rantamuta/datasource-file#v1.0.0",
+    "ranvier-telnet": "github:Rantamuta/ranvier-telnet#v1.0.0",
     "semver": "^7.6.0",
     "sprintf-js": "^1.0.3",
     "winston": "^2.4.4"

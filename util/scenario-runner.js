@@ -1,6 +1,28 @@
 #!/usr/bin/env node
 'use strict';
 
+/**
+ * Scenario runner for command/bundle smoke checks.
+ *
+ * Boots Rantamuta/ranviermud in no-transport mode, loads bundles, and executes one or more
+ * commands through the CommandManager using a real Player instance backed by a
+ * dummy socket (stdout capture only). This gives a lightweight way to validate
+ * command parsing, movement, and execution order without starting the telnet server.
+ *
+ * Usage:
+ * - `node util/scenario-runner.js --command "look" --command "north"`
+ * - `node util/scenario-runner.js --commandsFile test/scenarios/smoke.commands`
+ * - `node util/scenario-runner.js --room "limbo:white" --command "look"`
+ *
+ * Flags:
+ * - `--command <text>`: add a command line to run (repeatable).
+ * - `--commandsFile <path>`: load line-separated commands (# for comments).
+ * - `--args "<args>"`: legacy args appended to a single `--command`.
+ * - `--room "<area:roomId>"`: start the player in a specific room.
+ * - `--playerEmit:<event> [args]`: emit player events (e.g., `--playerEmit:move east`).
+ * - `--failOnUnknown`: exit non-zero if any unknown commands are encountered.
+ * - `--json`: emit machine-readable JSON (includes log capture events).
+ */
 const fs = require('fs');
 const path = require('path');
 
