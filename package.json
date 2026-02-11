@@ -19,10 +19,14 @@
     "install-bundle": "node ./util/install-bundle.js",
     "smoke:login": "node ./scripts/smoke-login.js",
     "test": "mocha",
-    "bundles:validate": "node util/validate-bundles.js",
+    "bundle:install": "node util/install-bundle.js",
+    "bundle:remove": "node util/remove-bundle.js",
+    "bundle:update": "node util/update-bundle-url.js",
+    "bundles:init": "node util/init-bundles.js",
     "bundles:test": "node util/test-bundles.js",
     "bundles:test:contract": "node --test test/bundles.contract.test.js",
-    "bundles:nuke": "rm -rf bundles && node -e \"const fs=require('fs');const p='ranvier.json';const data=JSON.parse(fs.readFileSync(p,'utf8'));data.bundles=[];fs.writeFileSync(p,JSON.stringify(data,null,2)+'\\\\n');\"",
+    "bundles:validate": "node util/validate-bundles.js",
+    "bundles:nuke": "node util/nuke-bundles.js",
     "scenario": "node util/scenario-runner.js"
   },
   "dependencies": {
