@@ -4,6 +4,7 @@
 const cp = require('child_process');
 const fs = require('fs');
 const os = require('os');
+const path = require('path');
 const readline = require('readline');
 
 const argv = process.argv.slice(2);
@@ -51,6 +52,7 @@ async function main() {
   }
 
   const defaultBundles = [
+    'https://github.com/Rantamuta/bundle-example-areas',
     'https://github.com/Rantamuta/bundle-example-channels',
     'https://github.com/Rantamuta/bundle-example-classes',
     'https://github.com/Rantamuta/bundle-example-combat',
@@ -62,12 +64,14 @@ async function main() {
     'https://github.com/Rantamuta/bundle-example-npc-behaviors',
     'https://github.com/Rantamuta/bundle-example-player-events',
     'https://github.com/Rantamuta/bundle-example-quests',
+    'https://github.com/Rantamuta/simple-crafting',
     'https://github.com/Rantamuta/vendor-npcs',
     'https://github.com/Rantamuta/player-groups',
     'https://github.com/Rantamuta/progressive-respawn',
     'https://github.com/Rantamuta/telnet-networking',
     'https://github.com/Rantamuta/websocket-networking',
   ];
+  const bundleNames = defaultBundles.map(bundle => bundle.replace(/^.+\/([a-z\-]+)$/, '$1'));
   const enabledBundles = [];
 
   if (!allowDirty) {
@@ -86,10 +90,33 @@ async function main() {
   }
   console.info('Done.');
 
+  console.info('Ensuring area quests files...');
+  const createdQuestFiles = [];
+  for (const bundle of bundleNames) {
+    const areasPath = path.join(gitRoot, 'bundles', bundle, 'areas');
+    if (!fs.existsSync(areasPath) || !fs.statSync(areasPath).isDirectory()) {
+      continue;
+    }
+    const areaDirs = fs.readdirSync(areasPath, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory());
+    for (const areaDir of areaDirs) {
+      const questPath = path.join(areasPath, areaDir.name, 'quests.yml');
+      if (fs.existsSync(questPath)) {
+        continue;
+      }
+      fs.writeFileSync(questPath, '[]\n');
+      createdQuestFiles.push(path.join('bundles', bundle, 'areas', areaDir.name, 'quests.yml'));
+    }
+  }
+  if (createdQuestFiles.length) {
+    console.info(`Added ${createdQuestFiles.length} missing quests.yml file(s).`);
+  }
+  console.info('Done.');
+
   console.info('Enabling bundles...');
   const ranvierJsonPath = __dirname + '/../ranvier.json';
   const ranvierJson = require(ranvierJsonPath);
-  ranvierJson.bundles = defaultBundles.map(bundle => bundle.replace(/^.+\/([a-z\-]+)$/, '$1'));
+  ranvierJson.bundles = bundleNames;
   fs.writeFileSync(ranvierJsonPath, JSON.stringify(ranvierJson, null, 2));
   console.info('Done.');
 

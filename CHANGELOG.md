@@ -7,18 +7,19 @@ All entries follow `docs/CHANGELOG_POLICY.md`.
 ### Bundle defaults
 
 - Summary:
-  - Removed `bundle-example-areas` and `simple-crafting` from the default bundle set.
+  - Restored `bundle-example-areas` and `simple-crafting` to the default bundle set.
+  - `init` now ensures missing `quests.yml` files exist for installed bundle areas.
 - Why:
-  - Both bundles fail to load out of the box due to missing `quests.yml` files.
-  - Default installs should boot cleanly without requiring local bundle patches.
+  - Default bundles should boot cleanly while preserving the engine's strict quest loader.
+  - The missing `quests.yml` files were causing load failures in example content.
 - Impact:
-  - Fresh installs no longer auto-install or enable these bundles.
-  - Existing installs that still reference them will continue to fail until the bundles are fixed or removed.
+  - Fresh installs include both bundles again.
+  - `npm run init` now creates empty quest files where they are missing.
 - Migration/Action:
-  - If you rely on these bundles, install and enable them manually after supplying the missing quest files.
+  - None. Rerun `npm run init` if you want the missing quest files created.
 - References:
-  - PR #27 Remove broken default bundles
-- Timestamp: 2026.02.11 15:59
+  - None.
+- Timestamp: 2026.02.11 17:29
 
 ### Package identity
 
