@@ -51,6 +51,7 @@ async function main() {
   }
 
   const defaultBundles = [
+    'https://github.com/Rantamuta/bundle-example-areas',
     'https://github.com/Rantamuta/bundle-example-channels',
     'https://github.com/Rantamuta/bundle-example-classes',
     'https://github.com/Rantamuta/bundle-example-combat',
@@ -62,6 +63,7 @@ async function main() {
     'https://github.com/Rantamuta/bundle-example-npc-behaviors',
     'https://github.com/Rantamuta/bundle-example-player-events',
     'https://github.com/Rantamuta/bundle-example-quests',
+    'https://github.com/Rantamuta/simple-crafting',
     'https://github.com/Rantamuta/vendor-npcs',
     'https://github.com/Rantamuta/player-groups',
     'https://github.com/Rantamuta/progressive-respawn',
