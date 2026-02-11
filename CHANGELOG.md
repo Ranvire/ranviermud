@@ -4,22 +4,34 @@ All entries follow `docs/CHANGELOG_POLICY.md`.
 
 ## Unreleased
 
+## Rantamuta `ranviermud` v1.0.0 — Salpausselkä
+
+**The Salpausselkä Release**
+
+Salpausselkä refers to a series of prominent glacial ridges found only in Finland, formed at the end of the last Ice Age. They mark a stable boundary where movement slowed, pressure settled, and the landscape took on its lasting shape.
+
+This release serves that role for Rantamuta’s `ranviermud` wrapper: a deliberate stabilization point after rapid movement and structural change, where interfaces harden, boundaries are clarified, and the project’s long term shape is fixed.
+
+This is the initial stable release of the Rantamuta `ranviermud` wrapper.
+
+Rantamuta `ranviermud` v1.0.0 is based on the RanvierMUD `ranviermud` wrapper at version `2.0.0` and is intended to preserve equivalent runtime behavior at the point of the fork, with modernization changes only.
+
+Future releases may diverge in behavior as the Rantamuta project evolves.
+
 ### Bundle defaults
 
 - Summary:
   - Restored `bundle-example-areas` and `simple-crafting` to the default bundle set.
-  - `init` now ensures missing `quests.yml` files exist for installed bundle areas.
 - Why:
+  - Upstream bundles now include the missing `quests.yml` files.
   - Default bundles should boot cleanly while preserving the engine's strict quest loader.
-  - The missing `quests.yml` files were causing load failures in example content.
 - Impact:
   - Fresh installs include both bundles again.
-  - `npm run init` now creates empty quest files where they are missing.
 - Migration/Action:
-  - None. Rerun `npm run init` if you want the missing quest files created.
+  - If you previously removed these bundles, re-run `npm run init` to reinstall the updated bundles.
 - References:
   - None.
-- Timestamp: 2026.02.11 17:29
+- Timestamp: 2026.02.11 18:31
 
 ### Package identity
 

@@ -20,8 +20,8 @@ This is a checklist outlining the scope of this work and the current status.
 * [x] Release `ranvier-datasource-file` v1.0
 * [x] Release `ranvier-telnet` v1.0
 * [x] Pin releases in `package.json`
-* [ ] Update `package.json` metadata fields like `version`
-* [ ] Update CHANGELOG release info
+* [x] Update `package.json` metadata fields like `version`
+* [x] Update CHANGELOG release info
 
 ### Runtime & Tooling
 
@@ -93,7 +93,7 @@ We have a Slack channel you can use to ask questions, suggest features, or just 
 
 ## Requirements
 
-* [Node.js](https://nodejs.org) >= v10.12.0
+* [Node.js](https://nodejs.org) >= v22.0.0
 
 ## Demo
 

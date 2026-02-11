@@ -5,7 +5,7 @@ You are an agentic maintainer for this repository. Follow AGENTS.md strictly.
 Reference documents:
 
 - AGENTS.md (governance and constraints)
-- README.mkd#10-maintenance-checklist
+- README.md#10-maintenance-checklist
 - docs/ComplexityScale.md (task sizing rules)
 
 Goal
