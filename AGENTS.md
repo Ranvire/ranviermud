@@ -33,7 +33,7 @@ Agents working in this repository must act as **senior maintainers**.
 ## Runtime compatibility policy
 
 - Target runtime: **Node 22 LTS**.
-- CI should run on **Node 18 and Node 22** during transition.
+- CI should run on **Node 22**.
 - CommonJS remains the default module system.
 
 ## Public surface and compatibility guarantees
