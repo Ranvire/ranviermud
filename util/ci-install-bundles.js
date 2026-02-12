@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 'use strict';
 
 // CI-focused bundle installer: non-interactive and does not modify configuration.

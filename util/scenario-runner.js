@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 'use strict';
 
 /**
@@ -201,6 +202,7 @@ function getRoomRef(args) {
 
 async function bootEngine(root, config) {
   const Ranvier = require('ranvier');
+  /** @typedef {import('ranvier')} Ranvier */
   Ranvier.Data.setDataPath(ensureTrailingSeparator(path.join(root, 'data')));
   Ranvier.Config.load(config);
 
@@ -233,6 +235,7 @@ async function bootEngine(root, config) {
     SkillManager: new Ranvier.SkillManager(),
     SpellManager: new Ranvier.SkillManager(),
     ServerEventManager: new Ranvier.EventManager(),
+    /** @type {InstanceType<import('ranvier').GameServer>} */
     GameServer: new Ranvier.GameServer(),
     DataLoader: Ranvier.Data,
     EntityLoaderRegistry: new Ranvier.EntityLoaderRegistry(),
@@ -276,7 +279,9 @@ function createNullSocket(output) {
 
 function createFakePlayer(output, GameState) {
   const Ranvier = require('ranvier');
+  /** @typedef {import('ranvier')} Ranvier */
   const socket = createNullSocket(output);
+  /** @type {InstanceType<import('ranvier').Player>} */
   const player = new Ranvier.Player({
     name: 'ScenarioPlayer',
     socket,
@@ -466,6 +471,7 @@ async function main() {
   const player = createFakePlayer(output, GameState);
 
   if (roomRef) {
+    /** @type {InstanceType<import('ranvier').Room> | null} */
     const room = GameState.RoomManager.getRoom(roomRef);
     if (!room) {
       if (logCapture) {
@@ -534,7 +540,9 @@ async function main() {
     }
 
     const { command, alias } = commandMatch;
-    await command.execute(commandSpec.args, player, alias);
+    /** @type {InstanceType<import('ranvier').Command>} */
+    const runnableCommand = command;
+    await runnableCommand.execute(commandSpec.args, player, alias);
     flushOutput(output, emitOutput);
   }
 
