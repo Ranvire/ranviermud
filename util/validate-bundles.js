@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 'use strict';
 
 const fs = require('fs');
@@ -142,6 +143,7 @@ function summarizeFindings(findings) {
 async function validateEngineLoadInProcess(root, config, findings) {
   try {
     const Ranvier = require('ranvier');
+    /** @typedef {import('ranvier')} Ranvier */
     Ranvier.Data.setDataPath(path.join(root, 'data'));
     Ranvier.Config.load(config);
 
@@ -174,6 +176,7 @@ async function validateEngineLoadInProcess(root, config, findings) {
       SkillManager: new Ranvier.SkillManager(),
       SpellManager: new Ranvier.SkillManager(),
       ServerEventManager: new Ranvier.EventManager(),
+      /** @type {InstanceType<import('ranvier').GameServer>} */
       GameServer: new Ranvier.GameServer(),
       DataLoader: Ranvier.Data,
       EntityLoaderRegistry: new Ranvier.EntityLoaderRegistry(),
